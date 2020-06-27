@@ -5,17 +5,19 @@ import (
 
 	"github.com/Shushsa/plan/x/paramining/keeper"
 
+	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdk_module "github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/Shushsa/plan/x/paramining/client/cli"
-	"github.com/Shushsa/plan/x/paramining/client/rest"
-	ptypes "github.com/Shushsa/plan/x/paramining/types"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
+
+	"github.com/Shushsa/plan/x/paramining/client/cli"
+	"github.com/Shushsa/plan/x/paramining/client/rest"
+
+	ptypes "github.com/Shushsa/plan/x/paramining/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdk_module "github.com/cosmos/cosmos-sdk/types/module"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
