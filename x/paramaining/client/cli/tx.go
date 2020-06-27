@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/paramining/types"
+	"github.com/Shushsa/plan/x/paramining/types"
 )
 
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {

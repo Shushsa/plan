@@ -2,7 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	planTypes "github.com/cosmos/sdk-tutorials/nameservice/x/nameservice/types" // nameservice folder
+	planTypes "github.com/Shushsa/plan/x/nameservice/types" // nameservice folder
 )
 
 type Emission struct {

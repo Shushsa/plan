@@ -4,10 +4,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/bank"                        // ouro bank folder not found
-	"github.com/cosmos/sdk-tutorials/nameservice/x/emission/keeper"             // ouro emission folder not found
-	planTypes "github.com/cosmos/sdk-tutorials/nameservice/x/nameservice/types" // nameservice folder
-	"github.com/cosmos/sdk-tutorials/nameservice/x/paramining/types"
+	"github.com/Shushsa/plan/x/bank"                        // ouro bank folder not found
+	"github.com/Shushsa/plan/x/emission/keeper"             // ouro emission folder not found
+	planTypes "github.com/Shushsa/plan/x/nameservice/types" // nameservice folder
+	"github.com/Shushsa/plan/x/paramining/types"
 )
 
 // Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine

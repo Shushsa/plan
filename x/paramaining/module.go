@@ -3,7 +3,7 @@ package paramining
 import (
 	"encoding/json"
 
-	"github.com/cosmos/sdk-tutorials/nameservice/x/paramining/keeper"
+	"github.com/Shushsa/plan/x/paramining/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -11,9 +11,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdk_module "github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/paramining/client/cli"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/paramining/client/rest"
-	ptypes "github.com/cosmos/sdk-tutorials/nameservice/x/paramining/types"
+	"github.com/Shushsa/plan/x/paramining/client/cli"
+	"github.com/Shushsa/plan/x/paramining/client/rest"
+	ptypes "github.com/Shushsa/plan/x/paramining/types"
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"

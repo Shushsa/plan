@@ -6,7 +6,7 @@ order: 19
 
 Now that your module is ready, it can be incorporated in the `./app.go` file. Let's begin by adding your new nameservice module to the imports:
 
-> _*NOTE*_: Your application needs to import the code you just wrote. Here the import path is set to this repository (`github.com/cosmos/sdk-tutorials/nameservice/x/nameservice`). If you are following along in your own repo you will need to change the import path to reflect that (`github.com/{ .Username }/{ .Project.Repo }/x/nameservice`).
+> _*NOTE*_: Your application needs to import the code you just wrote. Here the import path is set to this repository (`github.com/Shushsa/plan/x/nameservice`). If you are following along in your own repo you will need to change the import path to reflect that (`github.com/{ .Username }/{ .Project.Repo }/x/nameservice`).
 
 ```go
 package app
@@ -37,7 +37,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 
-	"github.com/cosmos/sdk-tutorials/nameservice/x/nameservice"
+	"github.com/Shushsa/plan/x/nameservice"
 )
 
 const appName = "nameservice"

@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/paramining/types"
+	"github.com/Shushsa/plan/x/paramining/types"
 )
 
 // Fetches a paramining record by the owner - if one doesn't exist, it'll create a new one

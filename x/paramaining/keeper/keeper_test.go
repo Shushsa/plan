@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/x/mock"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	keeper2 "github.com/cosmos/sdk-tutorials/nameservice/x/emission/keeper" // ouro emission folder
+	keeper2 "github.com/Shushsa/plan/x/emission/keeper" // ouro emission folder
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	xbank "github.com/cosmos/sdk-tutorials/nameservice/x/bank"                  // ouro bank folder
-	planTypes "github.com/cosmos/sdk-tutorials/nameservice/x/nameservice/types" // nameservice folder
-	paramining "github.com/cosmos/sdk-tutorials/nameservice/x/paramining/keeper"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/paramining/types"
+	xbank "github.com/Shushsa/plan/x/bank"                  // ouro bank folder
+	planTypes "github.com/Shushsa/plan/x/nameservice/types" // nameservice folder
+	paramining "github.com/Shushsa/plan/x/paramining/keeper"
+	"github.com/Shushsa/plan/x/paramining/types"
 	"github.com/tendermint/tendermint/crypto"
 
 	"github.com/stretchr/testify/assert"

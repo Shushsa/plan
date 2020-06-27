@@ -3,7 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/paramining/types"
+	"github.com/Shushsa/plan/x/paramining/types"
 )
 
 // When the keeper charges paramining

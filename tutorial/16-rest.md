@@ -8,7 +8,7 @@ Your module can also expose a REST interface to allow programatic access to the 
 
 Add in the `imports` and `const`s to get started:
 
-> _*NOTE*_: Your application needs to import the code you just wrote. Here the import path is set to this repository (`github.com/cosmos/sdk-tutorials/nameservice/x/nameservice`). If you are following along in your own repo you will need to change the import path to reflect that (`github.com/{ .Username }/{ .Project.Repo }/x/nameservice`).
+> _*NOTE*_: Your application needs to import the code you just wrote. Here the import path is set to this repository (`github.com/Shushsa/plan/x/nameservice`). If you are following along in your own repo you will need to change the import path to reflect that (`github.com/{ .Username }/{ .Project.Repo }/x/nameservice`).
 
 ```go
 package rest

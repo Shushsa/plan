@@ -6,7 +6,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/sdk-tutorials/nameservice/x/nameservice/types"
+	"github.com/Shushsa/plan/x/nameservice/types"
 )
 
 // query endpoints supported by the nameservice Querier

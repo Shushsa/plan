@@ -5,8 +5,8 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	planTypes "github.com/cosmos/sdk-tutorials/nameservice/x/nameservice/types"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/paramining/types"
+	planTypes "github.com/Shushsa/plan/x/nameservice/types"
+	"github.com/Shushsa/plan/x/paramining/types"
 )
 
 // Calculates how many tokens has been paramined

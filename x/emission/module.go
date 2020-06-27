@@ -3,7 +3,7 @@ package emission
 import (
 	"encoding/json"
 
-	"github.com/cosmos/sdk-tutorials/nameservice/x/emission/keeper"
+	"github.com/Shushsa/plan/x/emission/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -14,11 +14,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	eTypes "github.com/cosmos/sdk-tutorials/nameservice/x/emission/types"
+	eTypes "github.com/Shushsa/plan/x/emission/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/sdk-tutorials/nameservice/x/emission/client/cli"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/emission/client/rest"
+	"github.com/Shushsa/plan/x/emission/client/cli"
+	"github.com/Shushsa/plan/x/emission/client/rest"
 	"github.com/spf13/cobra"
 )
 

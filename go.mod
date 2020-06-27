@@ -1,4 +1,4 @@
-module github.com/cosmos/sdk-tutorials/nameservice
+module github.com/Shushsa/plan
 
 go 1.13
 

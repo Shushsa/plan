@@ -6,7 +6,7 @@ import (
 	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	planTypes "github.com/cosmos/sdk-tutorials/nameservice/x/nameservice/types" // nameservice folder
+	planTypes "github.com/Shushsa/plan/x/nameservice/types" // nameservice folder
 )
 
 type Keeper struct {

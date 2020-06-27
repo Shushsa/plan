@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/emission/types"
+	"github.com/Shushsa/plan/x/emission/types"
 )
 
 // Returns the emission record

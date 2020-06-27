@@ -2,8 +2,8 @@ package emission
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/emission/keeper"
-	"github.com/cosmos/sdk-tutorials/nameservice/x/emission/types"
+	"github.com/Shushsa/plan/x/emission/keeper"
+	"github.com/Shushsa/plan/x/emission/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
