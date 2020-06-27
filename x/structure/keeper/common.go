@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/Shushsa/planx/structure/types"
+	"github.com/Shushsa/plan/x/structure/types"
 )
 
 // Returns "upper structure" that's just a pointer to the next structure above

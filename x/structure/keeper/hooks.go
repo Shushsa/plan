@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ouroTypes "github.com/Shushsa/planx/ouroboros/types"
+	ouroTypes "github.com/Shushsa/plan/x/nameservice/types"
 )
 
 // This hook should be called when we change the structure balance

@@ -3,7 +3,7 @@ package structure
 
 import (
 	"encoding/json"
-	"github.com/Shushsa/planx/structure/keeper"
+	"github.com/Shushsa/plan/x/structure/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -12,9 +12,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdk_module "github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/gorilla/mux"
-	"github.com/Shushsa/planx/structure/client/cli"
-	"github.com/Shushsa/planx/structure/client/rest"
-	stypes "github.com/Shushsa/planx/structure/types"
+	"github.com/Shushsa/plan/x/structure/client/cli"
+	"github.com/Shushsa/plan/x/structure/client/rest"
+	stypes "github.com/Shushsa/plan/x/structure/types"
 	"github.com/spf13/cobra"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
