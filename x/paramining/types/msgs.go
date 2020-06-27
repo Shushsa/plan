@@ -24,7 +24,8 @@ func (msg MsgReinvest) Type() string { return "reinvest" }
 
 func (msg MsgReinvest) ValidateBasic() error {
 	if msg.Owner.Empty() {
-		return sdk.ErrInvalidAddress(msg.Owner.String())
+		// return sdk.ErrInvalidAddress(msg.Owner.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Owner.String())
 	}
 	return nil
 }
