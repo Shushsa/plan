@@ -1,8 +1,8 @@
 package keeper
 
 import (
+	planTypes "github.com/Shushsa/plan/x/nameservice/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ouroTypes "github.com/Shushsa/plan/x/nameservice/types"
 )
 
 // This hook should be called when we change the structure balance
@@ -16,10 +16,10 @@ func (k *Keeper) AddStructureChangedHook(hook StructureChangedHook) {
 func (k Keeper) GenerateAfterTransferHook() func(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress, amn sdk.Coins) {
 	return func(ctx sdk.Context, sender sdk.AccAddress, receiver sdk.AccAddress, amn sdk.Coins) {
 		// If the receive is already in someone's structure, we have to get through the whole structure
-		coinsAmount := amn.AmountOf(ouroTypes.OURO)
+		coinsAmount := amn.AmountOf(planTypes.PLAN)
 
 		// If the receiver isn't genesis and the receiver is already in some structure
-		if receiver.String() != ouroTypes.GenesisWallet && !k.AddToStructure(ctx, sender, receiver, coinsAmount) {
+		if receiver.String() != planTypes.GenesisWallet && !k.AddToStructure(ctx, sender, receiver, coinsAmount) {
 			// Taking the coins out of the sender's upper structure
 			k.DecreaseStructureBalance(ctx, sender, coinsAmount)
 

@@ -13,7 +13,7 @@ import (
 )
 
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	ouroTxCmd := &cobra.Command{
+	planTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Paramining transaction subcommands",
 		DisableFlagParsing:         true,
@@ -21,11 +21,11 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	ouroTxCmd.AddCommand(client.PostCommands(
+	planTxCmd.AddCommand(client.PostCommands(
 		GetCmdReinvest(cdc),
 	)...)
 
-	return ouroTxCmd
+	return planTxCmd
 }
 
 func GetCmdReinvest(cdc *codec.Codec) *cobra.Command {

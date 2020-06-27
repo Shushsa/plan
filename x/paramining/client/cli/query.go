@@ -14,18 +14,18 @@ import (
 )
 
 func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	ouroQueryCmd := &cobra.Command{
+	planQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Querying commands for the paramining module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	ouroQueryCmd.AddCommand(client.GetCommands(
+	planQueryCmd.AddCommand(client.GetCommands(
 		GetCmdGetParamining(cdc),
 	)...)
 
-	return ouroQueryCmd
+	return planQueryCmd
 }
 
 // GetCmdResolveName queries information about a name

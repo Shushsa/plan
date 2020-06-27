@@ -7,7 +7,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ouroTypes "github.com/Shushsa/plan/x/nameservice/types"
+	planTypes "github.com/Shushsa/plan/x/nameservice/types"
 	structure "github.com/Shushsa/plan/x/structure/keeper"
 	"github.com/Shushsa/plan/x/structure/types"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +16,7 @@ import (
 
 var (
 	initTokens, _ = sdk.NewIntFromString("10000")
-	initCoins     = sdk.NewCoins(sdk.NewCoin(ouroTypes.OURO, initTokens))
+	initCoins     = sdk.NewCoins(sdk.NewCoin(planTypes.PLAN, initTokens))
 )
 
 type testInput struct {
@@ -123,7 +123,7 @@ func TestAddToStructureFirstLine(t *testing.T) {
 
 	keeper, ctx := app.keeper, app.ctx
 
-	// 0.001 OURO
+	// 0.001 PLAN
 	coinsAmount := sdk.NewInt(1000)
 
 	firstAccount, secondAccount, thirdAccount := app.addrs[0], app.addrs[1], app.addrs[2]
@@ -154,7 +154,7 @@ func TestAddToBigStructure(t *testing.T) {
 
 	keeper, ctx := app.keeper, app.ctx
 
-	// 0.001 OURO
+	// 0.001 PLAN
 	coinsAmount := sdk.NewInt(1000)
 
 	// 5 levels
@@ -206,7 +206,7 @@ func TestAddToMaxStructure(t *testing.T) {
 
 	keeper, ctx := app.keeper, app.ctx
 
-	// 0.001 OURO
+	// 0.001 PLAN
 	coinsAmount := sdk.NewInt(1000)
 
 	// its depth will be ~150 levels (but will be reduced to 100 for the first account in line)
@@ -247,7 +247,7 @@ func TestIncreaseStructureBalance(t *testing.T) {
 
 	keeper, ctx := app.keeper, app.ctx
 
-	// 0 OURO
+	// 0 PLAN
 	coinsAmount := sdk.NewInt(0)
 
 	// 5 levels
@@ -262,7 +262,7 @@ func TestIncreaseStructureBalance(t *testing.T) {
 		i -= 1
 	}
 
-	// The latest account in the structure gets 0.001 OURO
+	// The latest account in the structure gets 0.001 PLAN
 	coinsAmount = sdk.NewInt(1000)
 	keeper.IncreaseStructureBalance(ctx, app.addrs[0], coinsAmount)
 	assert.True(t, keeper.GetStructure(ctx, app.addrs[0]).Balance.IsZero())
@@ -282,7 +282,7 @@ func TestDecreaseStructureBalance(t *testing.T) {
 
 	keeper, ctx := app.keeper, app.ctx
 
-	// 0 OURO
+	// 0 PLAN
 	coinsAmount := sdk.NewInt(0)
 
 	// 5 levels
@@ -297,11 +297,11 @@ func TestDecreaseStructureBalance(t *testing.T) {
 		i -= 1
 	}
 
-	// The latest account gets 0.001 OURO
+	// The latest account gets 0.001 PLAN
 	coinsAmount = sdk.NewInt(1000)
 	keeper.IncreaseStructureBalance(ctx, app.addrs[0], coinsAmount)
 
-	// The latest account transfered 0.0004 OURO to another structure, now it has just 0.0006 OURO in the structure
+	// The latest account transfered 0.0004 PLAN to another structure, now it has just 0.0006 PLAN in the structure
 	transfered := sdk.NewInt(400)
 	keeper.DecreaseStructureBalance(ctx, app.addrs[0], transfered)
 

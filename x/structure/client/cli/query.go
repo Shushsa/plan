@@ -13,19 +13,19 @@ import (
 )
 
 func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	ouroborosQueryCmd := &cobra.Command{
+	planborosQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Querying commands for the structure module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	ouroborosQueryCmd.AddCommand(client.GetCommands(
+	planborosQueryCmd.AddCommand(client.GetCommands(
 		GetCmdGetStructure(cdc),
 		GetGemdGetUpperStructure(cdc),
 	)...)
 
-	return ouroborosQueryCmd
+	return planborosQueryCmd
 }
 
 // GetCmdResolveName queries information about a name
