@@ -1,9 +1,9 @@
 package paramining
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/Shushsa/plan/x/paramining/keeper"
 	"github.com/Shushsa/plan/x/paramining/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 

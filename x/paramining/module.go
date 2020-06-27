@@ -3,6 +3,8 @@ package paramining
 import (
 	"encoding/json"
 
+	"github.com/Shushsa/plan/x/paramining/client/cli"
+	"github.com/Shushsa/plan/x/paramining/client/rest"
 	"github.com/Shushsa/plan/x/paramining/keeper"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -12,13 +14,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
-	"github.com/Shushsa/plan/x/paramining/client/cli"
-	"github.com/Shushsa/plan/x/paramining/client/rest"
-
 	ptypes "github.com/Shushsa/plan/x/paramining/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdk_module "github.com/cosmos/cosmos-sdk/types/module"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 var (
