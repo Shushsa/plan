@@ -7,9 +7,9 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	ouroTypes "github.com/ouroboros-crypto/node/x/ouroboros/types"
-	structure "github.com/ouroboros-crypto/node/x/structure/keeper"
-	"github.com/ouroboros-crypto/node/x/structure/types"
+	ouroTypes "github.com/Shushsa/planx/ouroboros/types"
+	structure "github.com/Shushsa/planx/structure/keeper"
+	"github.com/Shushsa/planx/structure/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/tendermint/tendermint/crypto"
 )

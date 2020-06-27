@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/ouroboros-crypto/node/x/structure/types"
+	"github.com/Shushsa/planx/structure/types"
 	"github.com/spf13/cobra"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

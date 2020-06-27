@@ -2,9 +2,9 @@ package structure
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ouroboros-crypto/node/x/structure/keeper"
+	"github.com/Shushsa/planx/structure/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/ouroboros-crypto/node/x/structure/types"
+	"github.com/Shushsa/planx/structure/types"
 )
 
 type GenesisState struct {

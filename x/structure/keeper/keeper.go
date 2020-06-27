@@ -3,8 +3,8 @@ package keeper
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	ouroTypes "github.com/ouroboros-crypto/node/x/ouroboros/types"
-	"github.com/ouroboros-crypto/node/x/structure/types"
+	ouroTypes "github.com/Shushsa/planx/ouroboros/types"
+	"github.com/Shushsa/planx/structure/types"
 )
 
 type Keeper struct {
