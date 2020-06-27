@@ -22,7 +22,7 @@ func (msg MsgReinvest) Route() string { return RouterKey }
 
 func (msg MsgReinvest) Type() string { return "reinvest" }
 
-func (msg MsgReinvest) ValidateBasic() sdk.Error {
+func (msg MsgReinvest) ValidateBasic() error {
 	if msg.Owner.Empty() {
 		return sdk.ErrInvalidAddress(msg.Owner.String())
 	}
