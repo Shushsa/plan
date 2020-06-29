@@ -1,19 +1,22 @@
 package cli
 
 import (
+	"bufio"
+
 	"github.com/spf13/cobra"
 
+	"github.com/Shushsa/plan/x/paramining/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/Shushsa/plan/x/paramining/types"
 )
 
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	planTxCmd := &cobra.Command{
+	nameserviceTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      "Paramining transaction subcommands",
 		DisableFlagParsing:         true,
@@ -21,11 +24,11 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	planTxCmd.AddCommand(client.PostCommands(
+	nameserviceTxCmd.AddCommand(flags.PostCommands(
 		GetCmdReinvest(cdc),
 	)...)
 
-	return planTxCmd
+	return nameserviceTxCmd
 }
 
 func GetCmdReinvest(cdc *codec.Codec) *cobra.Command {
@@ -34,8 +37,11 @@ func GetCmdReinvest(cdc *codec.Codec) *cobra.Command {
 		Short: "Gets paramining by sending a reinvest transaction",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			// txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
 			msg := types.NewMsgReinvest(cliCtx.GetFromAddress())
 			err := msg.ValidateBasic()

@@ -4,6 +4,8 @@ import (
 	"os"
 	"path"
 
+	app "github.com/Shushsa/plan"
+	addrs "github.com/Shushsa/plan/x/nameservice/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -16,7 +18,6 @@ import (
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
-	app "github.com/Shushsa/plan"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	amino "github.com/tendermint/go-amino"
@@ -25,15 +26,18 @@ import (
 
 func main() {
 	cobra.EnableCommandSorting = false
-	AccAddr := "plan"
+	// AccAddr := "plan"
 
 	cdc := app.MakeCodec()
 
 	// Read in the configuration file for the sdk
 	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(AccAddr, sdk.Bech32PrefixAccPub)
-	config.SetBech32PrefixForValidator(sdk.Bech32PrefixValAddr, sdk.Bech32PrefixValPub)
-	config.SetBech32PrefixForConsensusNode(sdk.Bech32PrefixConsAddr, sdk.Bech32PrefixConsPub)
+	// config.SetBech32PrefixForAccount(AccAddr, sdk.Bech32PrefixAccPub)
+	// config.SetBech32PrefixForValidator(sdk.Bech32PrefixValAddr, sdk.Bech32PrefixValPub)
+	// config.SetBech32PrefixForConsensusNode(sdk.Bech32PrefixConsAddr, sdk.Bech32PrefixConsPub)
+	config.SetBech32PrefixForAccount(addrs.AccAddr, addrs.AccPub)
+	config.SetBech32PrefixForValidator(addrs.ValAddr, addrs.ValPub)
+	config.SetBech32PrefixForConsensusNode(addrs.ConsAddr, addrs.ConsPub)
 	config.Seal()
 
 	rootCmd := &cobra.Command{

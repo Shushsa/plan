@@ -16,8 +16,9 @@ func NewPlanCoin(amount int64) sdk.Coin {
 func NewCoin(amount sdk.Int) sdk.Coin {
 	return sdk.NewCoin(PLAN, amount)
 }
+
 func NewCoins(amount sdk.Int) sdk.Coins {
-	return sdk.NewCoins(sdk.NewCoin(PLAN, amount))
+	return sdk.NewCoins(NewCoin(amount))
 }
 
 // Max structure level

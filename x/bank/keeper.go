@@ -1,12 +1,12 @@
 package bank
 
 import (
+	planTypes "github.com/Shushsa/plan/x/nameservice/types" // nameservice folder
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	planTypes "github.com/Shushsa/plan/x/nameservice/types" // nameservice folder
 )
 
 type Keeper struct {
@@ -20,9 +20,10 @@ type Keeper struct {
 	afterTransferHooks  []CoinsTransferHook
 }
 
+/*
 func NewBankKeeper(ak auth.AccountKeeper,
 	paramSpace params.Subspace,
-	codespace sdk.CodespaceType) Keeper {
+	codespace sdk.CodespaceType) Keeper { // ouro error on this string
 
 	keeper := Keeper{
 		BaseKeeper:          sdkbank.NewBaseKeeper(ak, paramSpace, codespace),
@@ -33,15 +34,21 @@ func NewBankKeeper(ak auth.AccountKeeper,
 	}
 
 	return keeper
-}
+} // ouro error
+*/
 
 // Returns the balance that should be used during calculations of paramining
 func (k Keeper) GetParaminableBalance(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins {
-	return k.GetCoins(ctx, addr).Add(k.GetStackedCoins(ctx, addr))
+	// return k.GetCoins(ctx, addr).Add(k.GetStackedCoins(ctx, addr)) // ouro error version
+
+	get_coins := k.GetCoins(ctx, addr)
+	get_stacked_coins := k.GetStackedCoin(ctx, addr)
+
+	return get_coins.Add(get_stacked_coins)
 }
 
 // Returns both stacked and unbounding coins
-func (k Keeper) GetStackedCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins {
+func (k Keeper) GetStackedCoin(ctx sdk.Context, addr sdk.AccAddress) sdk.Coin {
 	result := sdk.NewInt(0)
 
 	// First let's get through the stakes
@@ -60,13 +67,13 @@ func (k Keeper) GetStackedCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins 
 		}
 	}
 
-	return planTypes.NewCoins(result)
+	return planTypes.NewCoin(result)
 }
 
 // SendCoins moves coins from one account to another
 func (keeper Keeper) SendCoins(
 	ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins,
-) sdk.Error {
+) error {
 	keeper.beforeCoinsTransfer(ctx, fromAddr, toAddr, amt)
 
 	err := keeper.BaseKeeper.SendCoins(ctx, fromAddr, toAddr, amt)
