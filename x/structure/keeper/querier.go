@@ -2,59 +2,65 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/Shushsa/plan/x/structure/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const (
-	QueryGet = "get"
-	QueryUpper = "upper"
-)
-
-// NewQuerier is the module level router for state queries
-func NewQuerier(keeper Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
+// NewQuerier creates a new querier for structure clients.
+func NewQuerier(k Keeper) sdk.Querier {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case QueryGet:
-			return queryGet(ctx, path[1:], req, keeper)
-		case QueryUpper:
-			return queryUpper(ctx, path[1:], req, keeper)
+		case types.QueryGet:
+			return getStructure(ctx, path, k)
+		case types.QueryUpper:
+			return getUpperStructure(ctx, path, k)
 		default:
-			return nil, sdk.ErrUnknownRequest("Unknown structure query endpoint")
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown structure query endpoint")
 		}
 	}
 }
-func queryGet(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
-	addr, err := sdk.AccAddressFromBech32(path[0])
+
+
+// Returns the structure record
+func getStructure(ctx sdk.Context, path []string, k Keeper) ([]byte, error) {
+	addr, err := sdk.AccAddressFromBech32(path[1])
 
 	if err != nil {
-		return []byte{}, sdk.ErrUnknownRequest("Wrong address")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
-	requestedStructure := k.GetStructure(ctx, addr)
-
-	res, err := codec.MarshalJSONIndent(k.cdc, requestedStructure)
+	coin, err := k.CoinsKeeper.GetCoin(ctx, path[2])
 
 	if err != nil {
-		panic("could not marshal result to JSON")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	res, err := codec.MarshalJSONIndent(k.Cdc, k.GetStructure(ctx, addr, coin))
+
+	if err != nil {
+		return res, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return res, nil
 }
-func queryUpper(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
-	addr, err := sdk.AccAddressFromBech32(path[0])
+
+
+
+// Returns the structure record
+func getUpperStructure(ctx sdk.Context, path []string, k Keeper) ([]byte, error) {
+	addr, err := sdk.AccAddressFromBech32(path[1])
 
 	if err != nil {
-		return []byte{}, sdk.ErrUnknownRequest("Wrong address")
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
-	requestedStructure := k.GetUpperStructure(ctx, addr)
-
-	res, err := codec.MarshalJSONIndent(k.cdc, requestedStructure)
+	res, err := codec.MarshalJSONIndent(k.Cdc, k.GetUpperStructure(ctx, addr))
 
 	if err != nil {
-		panic("could not marshal result to JSON")
+		return res, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return res, nil

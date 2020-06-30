@@ -1,16 +1,26 @@
-# Nameservice Application Tutorial
+# Plancoin v2
 
-In this tutorial we will build a fully-functional nameservice application on a blockchain with the Cosmos SDK
+Plancoin is a blockchain built on the Cosmos SDK with ability to generate a passive income (posmining) and create your own coins!
 
+## Requirements
 
-**[Click here](./tutorial/00-intro.md)** to start the tutorial. You can also view it on the [website](https://tutorials.cosmos.network/).
+ - At least 5 GB disk space
+ - Golang >= 1.13 with the $GOPATH and $GOBIN variables set
+ - *Nix system
+ 
+## Install
 
-## Building and running the example
+Just run `bash ./scripts/build.sh` or `make install`, then you'll be able to use it from your console by  `plancoind` or `plancoincli`.
 
-If you are on the website, you can [find the code here on Github](https:://www.github.com/cosmos/sdk-tutorials)
-**[Click here](./tutorial/21-build-run.md)** for instructions on how to build and run the code.
+## Running the node
 
-Translations:
-- [中文](./README_cn.md)
+Just start it by `plancoind start` and you should see it synchronizing the blocks. 
 
-## [Slides](https://docs.google.com/presentation/d/1aCMAdkVY-gfgnGNPTygwVk3o68czPQ_VYfvdMy9Ek5Q/edit?usp=sharing)
+If you want to become a validator, please check the docs <https://docs.plancoin-crypto.com/en/validator.html>
+
+## Resources
+
+* Website: <https://plancoin-crypto.com/en/>
+* Explorer: <https://explorer.plancoin-crypto.com>
+* Docs: <https://docs.plancoin-crypto.com/en/>
+* Telegram channel: <https://t.me/plancoin_lika_world>

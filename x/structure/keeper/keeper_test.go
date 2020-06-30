@@ -1,315 +1,323 @@
-package keeper_test
+package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/x/mock"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"testing"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
-	planTypes "github.com/Shushsa/plan/x/nameservice/types"
-	structure "github.com/Shushsa/plan/x/structure/keeper"
-	"github.com/Shushsa/plan/x/structure/types"
-	"github.com/stretchr/testify/assert"
-	"github.com/tendermint/tendermint/crypto"
+	"github.com/cosmos/cosmos-sdk/x/mock"
+	"github.com/magiconair/properties/assert"
+	"github.com/Shushsa/plan/x/coins"
+	"testing"
 )
 
-var (
-	initTokens, _ = sdk.NewIntFromString("10000")
-	initCoins     = sdk.NewCoins(sdk.NewCoin(planTypes.PLAN, initTokens))
-)
 
-type testInput struct {
-	mApp     *mock.App
-	ctx      sdk.Context
-	keeper   structure.Keeper
-	addrs    []sdk.AccAddress
-	pubKeys  []crypto.PubKey
-	privKeys []crypto.PrivKey
+// Tests the addToStructure method with default coin (plan)
+func TestAddToStructureDefault(t *testing.T) {
+	ctx, _, keeper, _ := createTestInput(t, false)
+
+	// Generate a few accounts
+	_, addrs, _, _ := mock.CreateGenAccounts(2, sdk.NewCoins())
+
+	owner := addrs[0]
+	receiver := addrs[1]
+
+	defaultCoin := coins.GetDefaultCoin()
+	customCoin := coins.Coin{Symbol:"test"}
+
+	// 100 plan
+	amount := sdk.NewIntWithDecimal(100, 6)
+
+	added := keeper.AddToStructure(ctx, owner, receiver, amount, defaultCoin)
+
+	// The receiver should be added to the owner structure
+	assert.Equal(t, added, true)
+
+	// Make sure we've got the right upper structure record
+	upper := keeper.GetUpperStructure(ctx, receiver)
+
+	assert.Equal(t, upper.Owner, owner)
+
+	// Make sure the structure has everything right
+	structure := keeper.GetStructure(ctx, owner, defaultCoin)
+
+	assert.Equal(t, structure.Owner, owner)
+	assert.Equal(t, structure.Balance, amount)
+	assert.Equal(t, structure.Followers, sdk.NewInt(1))
+	assert.Equal(t, structure.MaxLevel, sdk.NewInt(1))
+
+	// Make sure any other custom coin will have 0 balance but still the same structure
+	structure = keeper.GetStructure(ctx, owner, customCoin)
+
+	assert.Equal(t, structure.Owner, owner)
+	assert.Equal(t, structure.Balance, sdk.NewInt(0))
+	assert.Equal(t, structure.Followers, sdk.NewInt(1))
+	assert.Equal(t, structure.MaxLevel, sdk.NewInt(1))
+
+	// It should not be saved again, even with another coint
+	addedAgain := keeper.AddToStructure(ctx, owner, receiver, amount, customCoin)
+
+	assert.Equal(t, addedAgain, false)
 }
 
-// Creates and returns a test app
-func getMockApp(t *testing.T) testInput {
-	mApp := mock.NewApp()
+// Tests the addToStructure method with default coin (plan)
+func TestAddToStructureCustom(t *testing.T) {
+	ctx, _, keeper, _ := createTestInput(t, false)
 
-	keyStructure := sdk.NewKVStoreKey(structure.StoreKey)
-	keyStructureFast := sdk.NewKVStoreKey(structure.FastAccessKey)
+	// Generate a few accounts
+	_, addrs, _, _ := mock.CreateGenAccounts(2, sdk.NewCoins())
 
-	keeper := structure.NewKeeper(
-		mApp.Cdc,
-		keyStructure,
-		keyStructureFast,
-	)
+	owner := addrs[0]
+	receiver := addrs[1]
 
-	mApp.CompleteSetup(keyStructure, keyStructureFast)
+	customCoin := coins.Coin{Symbol:"test"}
+	defaultCoin := coins.GetDefaultCoin()
 
-	genAccs, addrs, pubKeys, privKeys := mock.CreateGenAccounts(200, initCoins)
+	// 100 plan
+	amount := sdk.NewIntWithDecimal(100, 6)
 
-	mock.SetGenesis(mApp, genAccs)
+	added := keeper.AddToStructure(ctx, owner, receiver, amount, customCoin)
 
-	ctx := mApp.BaseApp.NewContext(true, abci.Header{})
+	// The receiver should be added to the owner structure
+	assert.Equal(t, added, true)
 
-	return testInput{
-		mApp:     mApp,
-		ctx:      ctx,
-		keeper:   keeper,
-		addrs:    addrs,
-		pubKeys:  pubKeys,
-		privKeys: privKeys,
-	}
+	// Make sure we've got the right upper structure record
+	upper := keeper.GetUpperStructure(ctx, receiver)
+
+	assert.Equal(t, upper.Owner, owner)
+
+	// Make sure the structure has everything right
+	structure := keeper.GetStructure(ctx, owner, customCoin)
+
+	assert.Equal(t, structure.Owner, owner)
+	assert.Equal(t, structure.Balance, amount)
+	assert.Equal(t, structure.Followers, sdk.NewInt(1))
+	assert.Equal(t, structure.MaxLevel, sdk.NewInt(1))
+
+	// Make sure the default coin will have 0 balance but still the same structure
+	structure = keeper.GetStructure(ctx, owner, defaultCoin)
+
+	assert.Equal(t, structure.Owner, owner)
+	assert.Equal(t, structure.Balance, sdk.NewInt(0))
+	assert.Equal(t, structure.Followers, sdk.NewInt(1))
+	assert.Equal(t, structure.MaxLevel, sdk.NewInt(1))
+
+	// It should not be saved again, even with default coin
+	addedAgain := keeper.AddToStructure(ctx, owner, receiver, amount, defaultCoin)
+
+	assert.Equal(t, addedAgain, false)
 }
 
-// Tests common upper structure methods
-func TestCommonUpperStructureMethods(t *testing.T) {
-	app := getMockApp(t)
-
-	keeper, ctx := app.keeper, app.ctx
-	firstAccount, secondAccount := app.addrs[0], app.addrs[1]
-
-	if keeper.HasUpperStructure(app.ctx, firstAccount) == true {
-		t.Errorf("%s should not have an upper structure by default", firstAccount)
-	}
-
-	// Создаем тестовый поинтер
-	keeper.SetUpperStructure(ctx, firstAccount, types.UpperStructure{
-		Owner:   secondAccount,
-		Address: firstAccount,
-	})
-
-	if keeper.HasUpperStructure(ctx, firstAccount) == false {
-		t.Errorf("%s should have upper structure now", firstAccount)
-	}
-
-	upperStructure := keeper.GetUpperStructure(ctx, firstAccount)
-
-	assert.Equal(t, upperStructure.Address, firstAccount)
-	assert.Equal(t, upperStructure.Owner, secondAccount)
-}
-
-// Tests common structure methods
-func TestCommonStructureMethods(t *testing.T) {
-	app := getMockApp(t)
-
-	keeper, ctx := app.keeper, app.ctx
-	firstAccount := app.addrs[0]
-
-	zero := sdk.NewInt(0)
-
-	// First structure that doesn't have any followers yet
-	firstStructure := keeper.GetStructure(ctx, firstAccount)
-
-	assert.Equal(t, firstStructure.Owner, firstAccount)
-
-	assert.True(t, firstStructure.Balance.Equal(zero))
-	assert.True(t, firstStructure.Followers.Equal(zero))
-	assert.True(t, firstStructure.MaxLevel.Equal(zero))
-
-	firstStructure.Balance = sdk.NewInt(500)
-	firstStructure.Followers = sdk.NewInt(50)
-	firstStructure.MaxLevel = sdk.NewInt(10)
-
-	keeper.SetStructure(ctx, firstStructure)
-
-	loadedStructure := keeper.GetStructure(ctx, firstAccount)
-
-	assert.True(t, loadedStructure.Balance.Equal(sdk.NewInt(500)))
-	assert.True(t, loadedStructure.Followers.Equal(sdk.NewInt(50)))
-	assert.True(t, loadedStructure.MaxLevel.Equal(sdk.NewInt(10)))
-}
-
-// Tests adding followers to the first line of the sturcture
-func TestAddToStructureFirstLine(t *testing.T) {
-	app := getMockApp(t)
-
-	keeper, ctx := app.keeper, app.ctx
-
-	// 0.001 PLAN
-	coinsAmount := sdk.NewInt(1000)
-
-	firstAccount, secondAccount, thirdAccount := app.addrs[0], app.addrs[1], app.addrs[2]
-
-	// Make sure the account doesn't have an upper structure yet
-	assert.False(t, keeper.HasUpperStructure(ctx, secondAccount))
-
-	// Add him to the structure
-	assert.True(t, keeper.AddToStructure(ctx, firstAccount, secondAccount, coinsAmount))
-
-	// Make sure the account has an upper structure now
-	assert.True(t, keeper.HasUpperStructure(ctx, secondAccount))
-
-	// Make sure we cannot rewrite the structure
-	assert.False(t, keeper.AddToStructure(ctx, thirdAccount, secondAccount, coinsAmount))
-
-	// Make sure the upper account got his structure updated
-	firstAccountStructure := keeper.GetStructure(ctx, firstAccount)
-
-	assert.True(t, firstAccountStructure.Balance.Equal(coinsAmount))
-	assert.True(t, firstAccountStructure.Followers.Equal(sdk.NewInt(1)))
-	assert.True(t, firstAccountStructure.MaxLevel.Equal(sdk.NewInt(1)))
-}
-
-// Tests adding multiple followers on different levels
-func TestAddToBigStructure(t *testing.T) {
-	app := getMockApp(t)
-
-	keeper, ctx := app.keeper, app.ctx
-
-	// 0.001 PLAN
-	coinsAmount := sdk.NewInt(1000)
-
-	// 5 levels
-	i := 5
-
-	// 5 levels depth structure - 5 -> 4, 4 -> 3, 3 -> 2, 2 -> 1, 1 -> 0
-	for i > 0 {
-		firstAccount, secondAccount := app.addrs[i], app.addrs[i-1]
-
-		assert.True(t, keeper.AddToStructure(ctx, firstAccount, secondAccount, coinsAmount))
-
-		i -= 1
-	}
-
-	// First get the first structure record
-	lastStructure := keeper.GetStructure(ctx, app.addrs[5])
-
-	// That structure should have 5 followers and 5 levels
-	assert.True(t, lastStructure.MaxLevel.Equal(sdk.NewInt(5)))
-	assert.True(t, lastStructure.Followers.Equal(sdk.NewInt(5)))
-
-	// Adding a few more followers
-	assert.True(t, keeper.AddToStructure(ctx, app.addrs[1], app.addrs[6], coinsAmount))
-	assert.True(t, keeper.AddToStructure(ctx, app.addrs[2], app.addrs[7], coinsAmount))
-	assert.True(t, keeper.AddToStructure(ctx, app.addrs[2], app.addrs[8], coinsAmount))
-
-	// Refreshing it from db
-	lastStructure = keeper.GetStructure(ctx, app.addrs[5])
-
-	// Now it should have 3 more followers but the same levels
-	assert.True(t, lastStructure.MaxLevel.Equal(sdk.NewInt(5)))
-	assert.True(t, lastStructure.Followers.Equal(sdk.NewInt(8)))
-
-	// Checking the second and the third structures
-	anotherStructure := keeper.GetStructure(ctx, app.addrs[1])
-
-	assert.True(t, anotherStructure.MaxLevel.Equal(sdk.NewInt(1)))
-	assert.True(t, anotherStructure.Followers.Equal(sdk.NewInt(2)))
-
-	anotherStructure = keeper.GetStructure(ctx, app.addrs[2])
-
-	assert.True(t, anotherStructure.MaxLevel.Equal(sdk.NewInt(2)))
-	assert.True(t, anotherStructure.Followers.Equal(sdk.NewInt(5)))
-}
-
-// Testing the biggest structure
+// Tests the addToStructure method with default coin (plan)
 func TestAddToMaxStructure(t *testing.T) {
-	app := getMockApp(t)
+	ctx, _, keeper, _ := createTestInput(t, false)
 
-	keeper, ctx := app.keeper, app.ctx
+	// Generate a few accounts
+	_, addrs, _, _ := mock.CreateGenAccounts(152, sdk.NewCoins())
 
-	// 0.001 PLAN
-	coinsAmount := sdk.NewInt(1000)
+	// 10 plan
+	amount := sdk.NewIntWithDecimal(10, 6)
+
+	coin := coins.GetDefaultCoin()
 
 	// its depth will be ~150 levels (but will be reduced to 100 for the first account in line)
 	i := 150
 
+	// 150 -> 149, 149 -> 148, ...
 	for i > 0 {
-		firstAccount, secondAccount := app.addrs[i], app.addrs[i-1]
-
-		assert.True(t, keeper.AddToStructure(ctx, firstAccount, secondAccount, coinsAmount))
+		assert.Equal(t, keeper.AddToStructure(ctx, addrs[i], addrs[i-1], amount, coin), true)
 
 		i -= 1
 	}
 
 	// Make sure the first account doesn't have more than 100 followers & levels
-	lastStructure := keeper.GetStructure(ctx, app.addrs[150])
+	lastStructure := keeper.GetStructure(ctx, addrs[150], coin)
 
-	assert.True(t, lastStructure.MaxLevel.Equal(sdk.NewInt(100)))
-	assert.True(t, lastStructure.Followers.Equal(sdk.NewInt(100)))
+	assert.Equal(t, lastStructure.MaxLevel, sdk.NewInt(100))
+	assert.Equal(t, lastStructure.Followers, sdk.NewInt(100))
+	assert.Equal(t, lastStructure.Balance, sdk.NewInt(0)) // Since we've sent the money down the line
 
-	lastStructure.Balance = sdk.NewInt(2000)
+	// To make sure we'll get this balance removed
+	lastStructure.Balance = sdk.NewIntWithDecimal(30, 6)
 
-	keeper.SetStructure(ctx, lastStructure)
+	keeper.SetStructure(ctx, lastStructure, coin)
 
 	currentBalance := lastStructure.Balance
 
 	// Make sure that adding follower to ~101 account won't be added to the first account
-	assert.True(t, keeper.AddToStructure(ctx, app.addrs[50], app.addrs[151], coinsAmount))
+	assert.Equal(t, keeper.AddToStructure(ctx, addrs[50], addrs[151], amount, coin), true)
 
-	lastStructure = keeper.GetStructure(ctx, app.addrs[150])
-	assert.True(t, lastStructure.MaxLevel.Equal(sdk.NewInt(100)))
-	assert.True(t, lastStructure.Followers.Equal(sdk.NewInt(100)))
-	assert.True(t, lastStructure.Balance.Equal(currentBalance.Sub(coinsAmount)))
+	lastStructure = keeper.GetStructure(ctx, addrs[150], coin)
+
+	assert.Equal(t, lastStructure.MaxLevel.Equal(sdk.NewInt(100)), true)
+	assert.Equal(t, lastStructure.Followers.Equal(sdk.NewInt(100)), true)
+	assert.Equal(t, lastStructure.Balance, currentBalance.Sub(amount))
 }
 
-// Testing the increaseStructureBalance method
-func TestIncreaseStructureBalance(t *testing.T) {
-	app := getMockApp(t)
+// Testing the increaseStructureBalance method with the default coin
+func TestIncreaseStructureBalanceDefault(t *testing.T) {
+	ctx, _, keeper, _ := createTestInput(t, false)
 
-	keeper, ctx := app.keeper, app.ctx
+	// Generate a few accounts
+	_, addrs, _, _ := mock.CreateGenAccounts(6, sdk.NewCoins())
 
-	// 0 PLAN
+	//customCoin := coins.Coin{Symbol:"test"}
+	defaultCoin := coins.GetDefaultCoin()
+
+
+	// 0 OURO
 	coinsAmount := sdk.NewInt(0)
 
 	// 5 levels
 	i := 5
 
-	// 5 levels depth structure - 5 -> 4, 4 -> 3, 3 -> 2, 2 -> 1, 1 -> 0
+	// First let's create 5 levels depth structure - 5 -> 4, 4 -> 3, 3 -> 2, 2 -> 1, 1 -> 0
 	for i > 0 {
-		firstAccount, secondAccount := app.addrs[i], app.addrs[i-1]
+		firstAccount, secondAccount := addrs[i], addrs[i-1]
 
-		assert.True(t, keeper.AddToStructure(ctx, firstAccount, secondAccount, coinsAmount))
+		assert.Equal(t, keeper.AddToStructure(ctx, firstAccount, secondAccount, coinsAmount, defaultCoin), true)
 
 		i -= 1
 	}
 
-	// The latest account in the structure gets 0.001 PLAN
-	coinsAmount = sdk.NewInt(1000)
-	keeper.IncreaseStructureBalance(ctx, app.addrs[0], coinsAmount)
-	assert.True(t, keeper.GetStructure(ctx, app.addrs[0]).Balance.IsZero())
+	// The latest account in the structure gets 100 OURO
+	coinsAmount = sdk.NewIntWithDecimal(100, 6)
+	keeper.IncreaseStructureBalance(ctx, addrs[0], coinsAmount, defaultCoin)
+
+	assert.Equal(t, keeper.GetStructure(ctx, addrs[0], defaultCoin).Balance.IsZero(), true)
 
 	i = 5
 
 	// Checking the balances
 	for i > 1 {
-		assert.True(t, keeper.GetStructure(ctx, app.addrs[i]).Balance.Equal(coinsAmount))
+		assert.Equal(t, keeper.GetStructure(ctx, addrs[i], defaultCoin).Balance.Equal(coinsAmount), true)
 
 		i -= 1
 	}
 }
 
-func TestDecreaseStructureBalance(t *testing.T) {
-	app := getMockApp(t)
+// Testing the increaseStructureBalance method with the custom coin
+func TestIncreaseStructureBalanceCustom(t *testing.T) {
+	ctx, _, keeper, _ := createTestInput(t, false)
 
-	keeper, ctx := app.keeper, app.ctx
+	// Generate a few accounts
+	_, addrs, _, _ := mock.CreateGenAccounts(6, sdk.NewCoins())
 
-	// 0 PLAN
+	coin := coins.Coin{Symbol:"test"}
+
+
+	// 0test
 	coinsAmount := sdk.NewInt(0)
 
 	// 5 levels
 	i := 5
 
-	// 5 levels depth structure - 5 -> 4, 4 -> 3, 3 -> 2, 2 -> 1, 1 -> 0
+	// First let's create 5 levels depth structure - 5 -> 4, 4 -> 3, 3 -> 2, 2 -> 1, 1 -> 0
 	for i > 0 {
-		firstAccount, secondAccount := app.addrs[i], app.addrs[i-1]
+		firstAccount, secondAccount := addrs[i], addrs[i-1]
 
-		assert.True(t, keeper.AddToStructure(ctx, firstAccount, secondAccount, coinsAmount))
+		assert.Equal(t, keeper.AddToStructure(ctx, firstAccount, secondAccount, coinsAmount, coin), true)
 
 		i -= 1
 	}
 
-	// The latest account gets 0.001 PLAN
-	coinsAmount = sdk.NewInt(1000)
-	keeper.IncreaseStructureBalance(ctx, app.addrs[0], coinsAmount)
+	// The latest account in the structure gets 100test
+	coinsAmount = sdk.NewIntWithDecimal(100, 6)
+	keeper.IncreaseStructureBalance(ctx, addrs[0], coinsAmount, coin)
 
-	// The latest account transfered 0.0004 PLAN to another structure, now it has just 0.0006 PLAN in the structure
-	transfered := sdk.NewInt(400)
-	keeper.DecreaseStructureBalance(ctx, app.addrs[0], transfered)
+	assert.Equal(t, keeper.GetStructure(ctx, addrs[0], coin).Balance.IsZero(), true)
 
 	i = 5
 
-	// Checking all the balances
+	// Checking the balances
 	for i > 1 {
-		assert.True(t, keeper.GetStructure(ctx, app.addrs[i]).Balance.Equal(coinsAmount.Sub(transfered)))
+		assert.Equal(t, keeper.GetStructure(ctx, addrs[i], coin).Balance.Equal(coinsAmount), true)
+
+		i -= 1
+	}
+}
+
+// Testing the increaseStructureBalance method with the default coin
+func TestDecreaseStructureBalanceDefault(t *testing.T) {
+	ctx, _, keeper, _ := createTestInput(t, false)
+
+	// Generate a few accounts
+	_, addrs, _, _ := mock.CreateGenAccounts(6, sdk.NewCoins())
+
+	//customCoin := coins.Coin{Symbol:"test"}
+	coin := coins.GetDefaultCoin()
+
+
+	// 0 OURO
+	coinsAmount := sdk.NewInt(0)
+
+	// 5 levels
+	i := 5
+
+	// First let's create 5 levels depth structure - 5 -> 4, 4 -> 3, 3 -> 2, 2 -> 1, 1 -> 0
+	for i > 0 {
+		firstAccount, secondAccount := addrs[i], addrs[i-1]
+
+		assert.Equal(t, keeper.AddToStructure(ctx, firstAccount, secondAccount, coinsAmount, coin), true)
+
+		i -= 1
+	}
+
+	// The latest account in the structure gets 100 OURO
+	coinsAmount = sdk.NewIntWithDecimal(100, 6)
+	keeper.IncreaseStructureBalance(ctx, addrs[0], coinsAmount, coin)
+
+	// And then transfers 40 OURO to another structure, now it has just 60 OURO in the structure
+	keeper.DecreaseStructureBalance(ctx, addrs[0], sdk.NewIntWithDecimal(40, 6), coin)
+
+	assert.Equal(t, keeper.GetStructure(ctx, addrs[0], coin).Balance.IsZero(), true)
+
+	i = 5
+
+	// Checking the balances
+	for i > 1 {
+		assert.Equal(t, keeper.GetStructure(ctx, addrs[i], coin).Balance.Equal(sdk.NewIntWithDecimal(60, 6)), true)
+
+		i -= 1
+	}
+}
+
+
+// Testing the increaseStructureBalance method with the default coin
+func TestDecreaseStructureBalanceCustom(t *testing.T) {
+	ctx, _, keeper, _ := createTestInput(t, false)
+
+	// Generate a few accounts
+	_, addrs, _, _ := mock.CreateGenAccounts(6, sdk.NewCoins())
+
+	coin := coins.Coin{Symbol:"test"}
+
+	// 0 OURO
+	coinsAmount := sdk.NewInt(0)
+
+	// 5 levels
+	i := 5
+
+	// First let's create 5 levels depth structure - 5 -> 4, 4 -> 3, 3 -> 2, 2 -> 1, 1 -> 0
+	for i > 0 {
+		firstAccount, secondAccount := addrs[i], addrs[i-1]
+
+		assert.Equal(t, keeper.AddToStructure(ctx, firstAccount, secondAccount, coinsAmount, coin), true)
+
+		i -= 1
+	}
+
+	// The latest account in the structure gets 100 OURO
+	coinsAmount = sdk.NewIntWithDecimal(100, 6)
+	keeper.IncreaseStructureBalance(ctx, addrs[0], coinsAmount, coin)
+
+	// And then transfers 40 OURO to another structure, now it has just 60 OURO in the structure
+	keeper.DecreaseStructureBalance(ctx, addrs[0], sdk.NewIntWithDecimal(40, 6), coin)
+
+	assert.Equal(t, keeper.GetStructure(ctx, addrs[0], coin).Balance.IsZero(), true)
+
+	i = 5
+
+	// Checking the balances
+	for i > 1 {
+		assert.Equal(t, keeper.GetStructure(ctx, addrs[i], coin).Balance.Equal(sdk.NewIntWithDecimal(60, 6)), true)
 
 		i -= 1
 	}

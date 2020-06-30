@@ -2,35 +2,44 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/Shushsa/plan/x/coins"
+	"github.com/Shushsa/plan/x/emission/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-const (
-	QueryGet = "get"
-)
-
-// NewQuerier is the module level router for state queries
-func NewQuerier(keeper Keeper) sdk.Querier {
-	// return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err error) {
+// NewQuerier creates a new querier for emission clients.
+func NewQuerier(k Keeper) sdk.Querier {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case QueryGet:
-			return queryGet(ctx, keeper)
+		case types.QueryGetEmission:
+			return getEmission(ctx, path, k)
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "Unknown emission query endpoint")
-			// return nil, sdkerrors.ErrUnknownRequest("Unknown emission query endpoint")
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown emission query endpoint")
 		}
 	}
 }
 
-// Получаем текущую эмиссию
-func queryGet(ctx sdk.Context, keeper Keeper) ([]byte, error) {
-	res, err := codec.MarshalJSONIndent(keeper.cdc, keeper.GetEmission(ctx))
+// Returns list of the all available coins
+func getEmission(ctx sdk.Context, path []string, k Keeper) ([]byte, error) {
+	var coin coins.Coin
+
+	if path[1] == "plan" {
+		coin = coins.GetDefaultCoin()
+	} else {
+		coin = coins.Coin{
+			Symbol: path[1],
+		}
+	}
+
+	emission := k.GetEmission(ctx, coin)
+
+	res, err := codec.MarshalJSONIndent(k.Cdc, types.NewQueryResGetEmission(emission, coin))
 
 	if err != nil {
-		panic("could not marshal result to JSON")
+		return res, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return res, nil

@@ -2,69 +2,50 @@ package structure
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/Shushsa/plan/x/structure/keeper"
-	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/Shushsa/plan/x/coins"
 	"github.com/Shushsa/plan/x/structure/types"
 )
 
-type GenesisState struct {
-	UpperStructureRecords []types.UpperStructure `json:"upper_structure_records"`
-	StructureRecords []types.Structure `json:"structure_records"`
-}
+// InitGenesis initialize default parameters
+// and the keeper's address to pubkey map
+func InitGenesis(ctx sdk.Context, k Keeper /* TODO: Define what keepers the module needs */, data GenesisState) {
+	defaultCoin := coins.GetDefaultCoin()
 
-// Init
-func NewGenesisState() GenesisState {
-	return GenesisState{}
-}
-
-// Validate
-func ValidateGenesis(data GenesisState) error {
-	return nil
-}
-
-// Default state
-func DefaultGenesisState() GenesisState {
-	return GenesisState{
-		UpperStructureRecords: []types.UpperStructure{},
-		StructureRecords: []types.Structure{},
-	}
-}
-
-// Init from state
-func InitGenesis(ctx sdk.Context, k  keeper.Keeper, data GenesisState) []abci.ValidatorUpdate {
 	for _, record := range data.UpperStructureRecords {
 		k.SetUpperStructure(ctx, record.Address, record)
 	}
 
 	for _, record := range data.StructureRecords {
-		k.SetStructure(ctx, record)
+		k.SetStructure(ctx, record, defaultCoin)
 	}
-
-	return []abci.ValidatorUpdate{}
 }
 
-// Export
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) GenesisState {
-	var structureRecords []types.Structure
+// ExportGenesis writes the current store values
+// to a genesis file, which can be imported again
+// with InitGenesis
+func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 	var upperStructureRecords []types.UpperStructure
+	var structureRecords []types.Structure
 
 	iterator := k.GetUpperStructureIterator(ctx)
 
 	for ; iterator.Valid(); iterator.Next() {
-		addr := sdk.AccAddress(iterator.Key())
+		var upperStructure types.UpperStructure
 
-		upperStructure := k.GetUpperStructure(ctx, addr)
+		k.Cdc.MustUnmarshalBinaryBare(iterator.Value(), &upperStructure)
+
 		upperStructureRecords = append(upperStructureRecords, upperStructure)
 	}
 
 	iterator = k.GetStructureIterator(ctx)
 
 	for ; iterator.Valid(); iterator.Next() {
-		addr := sdk.AccAddress(iterator.Key())
+		var structure types.Structure
 
-		structure := k.GetStructure(ctx, addr)
+		k.Cdc.MustUnmarshalBinaryBare(iterator.Value(), &structure)
+
 		structureRecords = append(structureRecords, structure)
 	}
 
-	return GenesisState{UpperStructureRecords: upperStructureRecords, StructureRecords: structureRecords}
+	return NewGenesisState(upperStructureRecords, structureRecords)
 }
