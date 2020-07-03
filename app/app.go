@@ -2,24 +2,18 @@ package app
 
 import (
 	"encoding/json"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"time"
-
 	"github.com/Shushsa/plan/x/coins"
 	"github.com/Shushsa/plan/x/emission"
 	"github.com/Shushsa/plan/x/plancoin"
 	"github.com/Shushsa/plan/x/posmining"
 	"github.com/Shushsa/plan/x/structure"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
+	"io"
+	"os"
 
-	xbank "github.com/Shushsa/plan/x/bank"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -36,6 +30,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	xbank "github.com/Shushsa/plan/x/bank"
 )
 
 const appName = "plancoin"
@@ -318,6 +313,7 @@ func NewInitApp(
 		// TODO: Add your module(s)
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
+
 	)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
@@ -402,8 +398,8 @@ func (app *NewApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 // EndBlocker application updates every end block
 func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	// Check if we should change regulation based on the price every 100 blocks
-	if ctx.BlockHeight()%100 == 0 {
-		client := http.Client{
+	if ctx.BlockHeight() % 100 == 0 {
+		/*client := http.Client{
 			Timeout: 5 * time.Second, // 5 seconds timeout
 		}
 
@@ -420,9 +416,9 @@ func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Re
 		// Some problems with parsing the body
 		if err != nil {
 			return app.mm.EndBlock(ctx, req)
-		}
+		}*/
 
-		price, isOk := sdk.NewIntFromString(string(body))
+		price, isOk := sdk.NewIntFromString("1")
 
 		if !isOk {
 			return app.mm.EndBlock(ctx, req)

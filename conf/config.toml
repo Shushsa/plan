@@ -172,7 +172,7 @@ external_address = ""
 seeds = ""
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "70930591086f0f1298a889332aa7826e9344c9e0@ec2-3-249-163-206.eu-west-1.compute.amazonaws.com:26656"
+persistent_peers = ""
 
 # UPNP port forwarding
 upnp = false
@@ -188,7 +188,7 @@ addr_book_strict = true
 max_num_inbound_peers = 40
 
 # Maximum number of outbound peers to connect to, excluding persistent peers
-max_num_outbound_peers = 10
+max_num_outbound_peers = 40
 
 # List of node IDs, to which a connection will be (re)established ignoring any existing limits
 unconditional_peer_ids = ""
@@ -203,10 +203,10 @@ flush_throttle_timeout = "100ms"
 max_packet_msg_payload_size = 1024
 
 # Rate at which packets can be sent, in bytes/second
-send_rate = 5120000
+send_rate = 40960000
 
 # Rate at which packets can be received, in bytes/second
-recv_rate = 5120000
+recv_rate = 40960000
 
 # Set true to enable the peer-exchange reactor
 pex = true
@@ -221,7 +221,7 @@ seed_mode = false
 private_peer_ids = ""
 
 # Toggle to disable guard against peers connecting from the same ip.
-allow_duplicate_ip = false
+allow_duplicate_ip = true
 
 # Peer connection configuration.
 handshake_timeout = "20s"
@@ -328,7 +328,7 @@ prometheus_listen_addr = ":26660"
 # If you want to accept a larger number than the default, make sure
 # you increase your OS limits.
 # 0 - unlimited.
-max_open_connections = 12
+max_open_connections = 0
 
 # Instrumentation namespace
 namespace = "tendermint"
