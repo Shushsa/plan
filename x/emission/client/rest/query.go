@@ -15,7 +15,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/emission/get/{coin}", queryGetCoinHandler(cliCtx)).Methods("GET")
 }
 
-// Returns OURO emission
+// Returns PLAN emission
 func queryGetHandler(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		res, _, err := cliCtx.QueryWithData("custom/emission/get/plan", nil)

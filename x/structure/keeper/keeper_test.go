@@ -162,7 +162,7 @@ func TestIncreaseStructureBalanceDefault(t *testing.T) {
 	defaultCoin := coins.GetDefaultCoin()
 
 
-	// 0 OURO
+	// 0 PLAN
 	coinsAmount := sdk.NewInt(0)
 
 	// 5 levels
@@ -177,7 +177,7 @@ func TestIncreaseStructureBalanceDefault(t *testing.T) {
 		i -= 1
 	}
 
-	// The latest account in the structure gets 100 OURO
+	// The latest account in the structure gets 100 PLAN
 	coinsAmount = sdk.NewIntWithDecimal(100, 6)
 	keeper.IncreaseStructureBalance(ctx, addrs[0], coinsAmount, defaultCoin)
 
@@ -245,7 +245,7 @@ func TestDecreaseStructureBalanceDefault(t *testing.T) {
 	coin := coins.GetDefaultCoin()
 
 
-	// 0 OURO
+	// 0 PLAN
 	coinsAmount := sdk.NewInt(0)
 
 	// 5 levels
@@ -260,11 +260,11 @@ func TestDecreaseStructureBalanceDefault(t *testing.T) {
 		i -= 1
 	}
 
-	// The latest account in the structure gets 100 OURO
+	// The latest account in the structure gets 100 PLAN
 	coinsAmount = sdk.NewIntWithDecimal(100, 6)
 	keeper.IncreaseStructureBalance(ctx, addrs[0], coinsAmount, coin)
 
-	// And then transfers 40 OURO to another structure, now it has just 60 OURO in the structure
+	// And then transfers 40 PLAN to another structure, now it has just 60 PLAN in the structure
 	keeper.DecreaseStructureBalance(ctx, addrs[0], sdk.NewIntWithDecimal(40, 6), coin)
 
 	assert.Equal(t, keeper.GetStructure(ctx, addrs[0], coin).Balance.IsZero(), true)
@@ -289,7 +289,7 @@ func TestDecreaseStructureBalanceCustom(t *testing.T) {
 
 	coin := coins.Coin{Symbol:"test"}
 
-	// 0 OURO
+	// 0 PLAN
 	coinsAmount := sdk.NewInt(0)
 
 	// 5 levels
@@ -304,11 +304,11 @@ func TestDecreaseStructureBalanceCustom(t *testing.T) {
 		i -= 1
 	}
 
-	// The latest account in the structure gets 100 OURO
+	// The latest account in the structure gets 100 PLAN
 	coinsAmount = sdk.NewIntWithDecimal(100, 6)
 	keeper.IncreaseStructureBalance(ctx, addrs[0], coinsAmount, coin)
 
-	// And then transfers 40 OURO to another structure, now it has just 60 OURO in the structure
+	// And then transfers 40 PLAN to another structure, now it has just 60 PLAN in the structure
 	keeper.DecreaseStructureBalance(ctx, addrs[0], sdk.NewIntWithDecimal(40, 6), coin)
 
 	assert.Equal(t, keeper.GetStructure(ctx, addrs[0], coin).Balance.IsZero(), true)

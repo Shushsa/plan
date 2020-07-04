@@ -3,21 +3,21 @@ package types
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
-	OURO                 = "plan"
+	PLAN                 = "plan"
 	POINTS               = 6        // points after comma
 	INITIAL              = 10000000 // initial emission
 	PARAMINING_THRESHOLD = 2000000  // posmining threshold
 )
 
 func NewPlanCoin(amount int64) sdk.Coin {
-	return sdk.NewInt64Coin(OURO, amount)
+	return sdk.NewInt64Coin(PLAN, amount)
 }
 
 func NewCoin(amount sdk.Int) sdk.Coin {
-	return sdk.NewCoin(OURO, amount)
+	return sdk.NewCoin(PLAN, amount)
 }
 func NewCoins(amount sdk.Int) sdk.Coins {
-	return sdk.NewCoins(sdk.NewCoin(OURO, amount))
+	return sdk.NewCoins(sdk.NewCoin(PLAN, amount))
 }
 
 // Since we cannot make constans as objects

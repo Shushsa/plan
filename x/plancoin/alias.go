@@ -40,5 +40,5 @@ type (
 )
 
 const (
-	OURO = types.OURO
+	PLAN = types.PLAN
 )
