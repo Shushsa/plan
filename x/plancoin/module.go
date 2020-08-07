@@ -3,23 +3,27 @@ package plancoin
 import (
 	"encoding/json"
 
+	"github.com/Shushsa/plan/x/emission"
+	"github.com/cosmos/cosmos-sdk/x/params"
+
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/Shushsa/plan/x/bank"
+	"github.com/Shushsa/plan/x/plancoin/client/cli"
+	"github.com/Shushsa/plan/x/plancoin/client/rest"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/Shushsa/plan/x/plancoin/client/cli"
-	"github.com/Shushsa/plan/x/plancoin/client/rest"
 )
 
 // Type check to ensure the interface is properly implemented
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModule      = AppModule{}
+	_ module.AppModuleBasic = AppModuleBasic{}
 )
 
 // AppModuleBasic defines the basic application module used by the plancoin module.
@@ -72,15 +76,21 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper        Keeper
+	keeper         Keeper
+	paramsKeeper   params.Keeper
+	bankKeeper     bank.Keeper
+	emissionKeeper emission.Keeper
 	// TODO: Add keepers that your application depends on
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper, /*TODO: Add Keepers that your application depends on*/) AppModule {
+func NewAppModule(k Keeper, paramsKeeper params.Keeper, bankKeeper bank.Keeper, emissionKeeper emission.Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic:      AppModuleBasic{},
-		keeper:              k,
+		AppModuleBasic: AppModuleBasic{},
+		keeper:         k,
+		paramsKeeper:   paramsKeeper,
+		bankKeeper:     bankKeeper,
+		emissionKeeper: emissionKeeper,
 		// TODO: Add keepers that your application depends on
 	}
 }
@@ -100,7 +110,7 @@ func (AppModule) Route() string {
 
 // NewHandler returns an sdk.Handler for the plancoin module.
 func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
+	return NewHandler(am.keeper, am.paramsKeeper, am.bankKeeper, am.emissionKeeper)
 }
 
 // QuerierRoute returns the plancoin module's querier route name.

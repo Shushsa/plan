@@ -2,6 +2,9 @@ package app
 
 import (
 	"encoding/json"
+	"io"
+	"os"
+
 	"github.com/Shushsa/plan/x/coins"
 	"github.com/Shushsa/plan/x/emission"
 	"github.com/Shushsa/plan/x/plancoin"
@@ -11,9 +14,8 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
-	"io"
-	"os"
 
+	xbank "github.com/Shushsa/plan/x/bank"
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
@@ -30,7 +32,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	xbank "github.com/Shushsa/plan/x/bank"
 )
 
 const appName = "plancoin"
@@ -305,7 +306,7 @@ func NewInitApp(
 		coins.NewAppModule(app.coinsKeeper, app.bankKeeper),
 		posmining.NewAppModule(app.posminingKeeper),
 		structure.NewAppModule(app.structureKeeper),
-		plancoin.NewAppModule(app.planKeeper),
+		plancoin.NewAppModule(app.planKeeper, app.paramsKeeper, app.bankKeeper, app.emissionKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
@@ -313,7 +314,6 @@ func NewInitApp(
 		// TODO: Add your module(s)
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
-
 	)
 	// During begin block slashing happens after distr.BeginBlocker so that
 	// there is nothing left over in the validator fee pool, so as to keep the
@@ -398,7 +398,7 @@ func (app *NewApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 // EndBlocker application updates every end block
 func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	// Check if we should change regulation based on the price every 100 blocks
-	if ctx.BlockHeight() % 100 == 0 {
+	if ctx.BlockHeight()%100 == 0 {
 		/*client := http.Client{
 			Timeout: 5 * time.Second, // 5 seconds timeout
 		}

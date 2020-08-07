@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path"
 
@@ -26,8 +27,6 @@ import (
 
 	"github.com/Shushsa/plan/app"
 	addrs "github.com/Shushsa/plan/x/plancoin/types"
-
-
 )
 
 func main() {
@@ -112,6 +111,15 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		Use:   "tx",
 		Short: "Transactions subcommands",
 	}
+
+	f, err := os.OpenFile("testlogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+
+	log.SetOutput(f)
+	log.Println("This is a test log entry")
 
 	txCmd.AddCommand(
 		bankcmd.SendTxCmd(cdc),

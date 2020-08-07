@@ -120,7 +120,8 @@ func (k Keeper) UpdateDailyPercent(ctx sdk.Context, addr sdk.AccAddress, coin co
 func (k Keeper) UpdateRegulation(ctx sdk.Context, currentPrice sdk.Int) {
 	regulation := k.GetCorrection(ctx)
 
-	coff := regulation.GetCoff(currentPrice)
+	//coff := regulation.GetCoff(currentPrice)
+	coff := sdk.NewInt(100)
 
 	// If the coff should be changed and since the latest update passed at least types.CorrectionUpdatePeriod hours
 	if !regulation.CorrectionCoff.Equal(coff) && ctx.BlockTime().Sub(regulation.StartDate).Hours() >= types.CorrectionUpdatePeriod {
