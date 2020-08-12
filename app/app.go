@@ -260,7 +260,7 @@ func NewInitApp(
 		app.coinsKeeper,
 	)
 
-	// The paramining keeper
+	// The posmining keeper
 	app.posminingKeeper = posmining.NewKeeper(
 		app.cdc,
 		keys[posmining.StoreKey],

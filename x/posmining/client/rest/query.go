@@ -11,7 +11,6 @@ import (
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/paramining/get/{address}", queryGetHandler(cliCtx)).Methods("GET")
 	r.HandleFunc("/posmining/get/{address}/{coin}", queryGetWithCoinHandler(cliCtx)).Methods("GET")
 
 }

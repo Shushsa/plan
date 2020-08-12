@@ -44,7 +44,6 @@ func queryProfile(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 		Owner: addr,
 		Balance: balance.AmountOf(coin.Symbol),
 		Posmining: posmining,
-		Paramining: posmining,
 		Structure: keeper.structureKeeper.GetStructure(ctx, addr, coin),
 	})
 

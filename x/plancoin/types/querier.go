@@ -18,7 +18,6 @@ type ProfileResolve struct {
 	Balance sdk.Int `json:"balance"`
 
 	Posmining posmining.PosminingResolve  `json:"posmining"`
-	Paramining posmining.PosminingResolve  `json:"paramining"`
 
 	Structure structure.Structure `json:"structure"`
 }

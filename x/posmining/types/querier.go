@@ -18,7 +18,6 @@ type PosminingResolve struct {
 	CorrectionCoff  sdk.Int      `json:"correction_coff"`
 
 	Posmining   Posmining   `json:"posmining"`
-	Paramining   Posmining   `json:"paramining"` // old versions
 
 	CoinsPerTime CoinsPerTime `json:"coins_per_time"`
 }
