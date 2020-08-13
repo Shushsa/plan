@@ -6,7 +6,7 @@ import (
 
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgChangeParams{}, "ouroboros/ChangeParams", nil)
+	cdc.RegisterConcrete(MsgChangeParams{}, "plancoin/ChangeParams", nil)
 	// TODO: Register the modules msgs
 }
 
