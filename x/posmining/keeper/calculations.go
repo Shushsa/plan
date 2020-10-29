@@ -1,14 +1,13 @@
 package keeper
 
 import (
-	"github.com/Shushsa/plan/x/posmining/types"
 	"math"
 	"time"
-)
 
-import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/Shushsa/plan/x/posmining/types"
+
 	"github.com/Shushsa/plan/x/coins"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Returns a list of saving posmining periods
@@ -19,7 +18,7 @@ func (k Keeper) GetSavingPeriods(ctx sdk.Context, posmining types.Posmining) []t
 	secondsDiff := int64(ctx.BlockTime().Sub(lastTx).Seconds())
 
 	if secondsDiff < daysSeparator {
-		return []types.PosminingPeriod{types.NewPosminingPeriod(lastTx, ctx.BlockTime(), sdk.NewInt(0), sdk.NewInt(0))}
+		return []types.PosminingPeriod{types.NewPosminingPeriod(lastTx, ctx.BlockTime(), sdk.NewInt(0))}
 	}
 
 	periods := secondsDiff / daysSeparator
@@ -32,8 +31,6 @@ func (k Keeper) GetSavingPeriods(ctx sdk.Context, posmining types.Posmining) []t
 		result = append(result, types.NewPosminingPeriod(
 			lastTx.Add(time.Duration(daysSeparator*i)*time.Second),
 			lastTx.Add(time.Duration(daysSeparator*(i+1))*time.Second),
-			sdk.NewInt(0),
-			types.GetSavingCoff(int(i)),
 		))
 
 		i += 1
@@ -46,46 +43,7 @@ func (k Keeper) GetSavingPeriods(ctx sdk.Context, posmining types.Posmining) []t
 		result = append(result, types.NewPosminingPeriod(
 			latestPeriod,
 			latestPeriod.Add(time.Duration(mod)*time.Second),
-			sdk.NewInt(0),
-			types.GetSavingCoff(int(periods)),
 		))
-	}
-
-	return result
-}
-
-// Returns a list of correction posmining periods
-func (k Keeper) GetCorrectionPeriods(ctx sdk.Context, posmining types.Posmining) []types.PosminingPeriod {
-	correction := k.GetCorrection(ctx)
-
-	// First we always initialize the current correction period
-	result := []types.PosminingPeriod{
-		types.NewPosminingPeriod(correction.StartDate, ctx.BlockTime(), correction.CorrectionCoff, sdk.NewInt(0)),
-	}
-
-	// If we should count only the current period
-	if correction.StartDate.Before(posmining.LastCharged) {
-		result[0].Start = posmining.LastCharged
-
-		return result
-	}
-
-	for _, previous := range correction.PreviousCorrections {
-		if previous.EndDate.After(posmining.LastCharged) {
-			var startDate time.Time
-
-			if previous.StartDate.Before(posmining.LastCharged) {
-				startDate = posmining.LastCharged
-			} else {
-				startDate = previous.StartDate
-			}
-
-			result = append([]types.PosminingPeriod{types.NewPosminingPeriod(startDate, previous.EndDate, previous.CorrectionCoff, sdk.NewInt(0))}, result...)
-		}
-
-		if previous.StartDate.Before(posmining.LastCharged) {
-			break
-		}
 	}
 
 	return result
@@ -97,52 +55,9 @@ func (k Keeper) GetPosminingGroup(ctx sdk.Context, posmining types.Posmining, co
 
 	// For the custom coins, we just have to apply the usual percents during the whole time
 	if !coin.Default {
-		group.Add(types.NewPosminingPeriod(posmining.LastCharged, ctx.BlockTime(), sdk.NewInt(0), sdk.NewInt(0)))
+		group.Add(types.NewPosminingPeriod(posmining.LastCharged, ctx.BlockTime(), sdk.NewInt(0)))
 
-		return group
-	}
-
-	savings := k.GetSavingPeriods(ctx, posmining)
-
-	corrections := k.GetCorrectionPeriods(ctx, posmining)
-
-	r_i := 0
-
-	for _, saving := range savings {
-		for r_i < len(corrections) {
-			correction := corrections[r_i]
-
-			// In that case, we should move to the next saving
-			if correction.Start.Equal(saving.End) || correction.Start.After(saving.End) {
-				break
-			}
-
-			if correction.End.Equal(saving.End) || correction.End.Before(saving.End) {
-				correction.SavingCoff = saving.SavingCoff
-
-				group.Add(correction)
-			} else {
-				newCorrection := correction
-
-				correction.End = saving.End
-				correction.SavingCoff = saving.SavingCoff
-
-				group.Add(correction)
-
-				newCorrection.Start = correction.End
-
-				// Making new space
-				corrections = append(corrections, types.PosminingPeriod{})
-
-				// Copying element to the next index
-				copy(corrections[r_i+2:], corrections[r_i+1:])
-
-				// Replacing
-				corrections[r_i+1] = newCorrection
-			}
-
-			r_i += 1
-		}
+		//return group
 	}
 
 	return group

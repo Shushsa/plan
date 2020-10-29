@@ -98,3 +98,12 @@ plancoincli config node tcp://54.187.0.50:26657
 plancoincli config output json
 plancoincli config indent true
 plancoincli config trust-node true
+
+
+
+
+
+
+plancoincli tx posmining reinvest plan --from {имя_ключа}
+
+plancoincli tx plancoin change-params --from "PVL"
