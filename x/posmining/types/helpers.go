@@ -1,9 +1,10 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Для подсчета начисляемых токенов за какое-то время (сутки, час, минута, секунда)
@@ -49,7 +50,6 @@ func NewCoinsPerTime(balance sdk.Int, dailyPercent sdk.Int, structureCoff sdk.In
 
 	return result
 }
-
 
 // Time difference
 type TimeDifference struct {
@@ -105,7 +105,6 @@ func NewTimeDifference(seconds sdk.Int) TimeDifference {
 	return difference
 }
 
-
 // A single posmining period
 type PosminingPeriod struct {
 	Start          time.Time `json:"start"`       // Начало периода
@@ -131,15 +130,15 @@ func NewPosminingPeriod(start time.Time, end time.Time, regulationCoff sdk.Int, 
 // A group of posmining periods
 type PosminingGroup struct {
 	Posmined  sdk.Int           `json:"posmined"`  // How many coins posmined during period
-	Balance    sdk.Int           `json:"balance"`    // Current balance
-	Posmining Posmining        `json:"posmining"` // Current balance
-	Periods    []PosminingPeriod `json:"periods"`    // Posmining periods
+	Balance   sdk.Int           `json:"balance"`   // Current balance
+	Posmining Posmining         `json:"posmining"` // Current balance
+	Periods   []PosminingPeriod `json:"periods"`   // Posmining periods
 }
 
 func NewPosminingGroup(posmining Posmining, balance sdk.Int) PosminingGroup {
 	return PosminingGroup{
-		Posmined: sdk.NewInt(0),
-		Balance: balance,
+		Posmined:  sdk.NewInt(0),
+		Balance:   balance,
 		Posmining: posmining,
 	}
 }

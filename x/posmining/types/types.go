@@ -34,15 +34,12 @@ func GetSavingCoff(i int) sdk.Int {
 
 // Структура хранения данных парамайнинга
 type Posmining struct {
-	Owner sdk.AccAddress `json:"owner"` // Владелец
-
-	DailyPercent  sdk.Int `json:"daily_percent"`  // Дневной процент начисления парамайнинга
-	StructureCoff sdk.Int `json:"structure_coff"` // Коэффициент структуры
-
-	Posmined sdk.Int `json:"posmined"` // Как много токенов уже напарамайнено, но не снято - юзаем для расчета при изменении условий
-
-	LastTransaction time.Time `json:"last_transaction"` // Когда последний раз была исходящая транзакция
-	LastCharged     time.Time `json:"last_charged"`     // Когда последний раз был charge (начисление парамайнинга)
+	Owner           sdk.AccAddress `json:"owner"`            // Владелец
+	DailyPercent    sdk.Int        `json:"daily_percent"`    // Дневной процент начисления парамайнинга
+	StructureCoff   sdk.Int        `json:"structure_coff"`   // Коэффициент структуры
+	Posmined        sdk.Int        `json:"posmined"`         // Как много токенов уже напарамайнено, но не снято - юзаем для расчета при изменении условий
+	LastTransaction time.Time      `json:"last_transaction"` // Когда последний раз была исходящая транзакция
+	LastCharged     time.Time      `json:"last_charged"`     // Когда последний раз был charge (начисление парамайнинга)
 }
 
 // Возвращает новый Posmining
@@ -57,10 +54,9 @@ func NewPosmining(owner sdk.AccAddress) Posmining {
 
 // Current Correction
 type Correction struct {
-	StartDate      time.Time `json:"start_date"`      // datetime of the updated coff
-	OpeningPrice   sdk.Int   `json:"opening_price"`   // the market price being used
-	CorrectionCoff sdk.Int   `json:"correction_coff"` // regulator coff
-
+	StartDate           time.Time            `json:"start_date"`           // datetime of the updated coff
+	OpeningPrice        sdk.Int              `json:"opening_price"`        // the market price being used
+	CorrectionCoff      sdk.Int              `json:"correction_coff"`      // regulator coff
 	PreviousCorrections []PreviousCorrection `json:"previous_corrections"` // previous regulation periods
 }
 
@@ -81,9 +77,8 @@ func (t *Correction) Update(current time.Time, price sdk.Int, coff sdk.Int) {
 }
 
 type PreviousCorrection struct {
-	StartDate time.Time `json:"start_date"` // дата и время начала регуляции
-	EndDate   time.Time `json:"end_date"`   // дата и время конца регуляции
-
-	OpeningPrice   sdk.Int `json:"opening_price"`   // цена, при которой поменялась регуляция
-	CorrectionCoff sdk.Int `json:"regulation_coff"` // коэффициент коррекции
+	StartDate      time.Time `json:"start_date"`      // дата и время начала регуляции
+	EndDate        time.Time `json:"end_date"`        // дата и время конца регуляции
+	OpeningPrice   sdk.Int   `json:"opening_price"`   // цена, при которой поменялась регуляция
+	CorrectionCoff sdk.Int   `json:"regulation_coff"` // коэффициент коррекции
 }
