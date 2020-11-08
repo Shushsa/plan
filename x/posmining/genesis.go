@@ -1,17 +1,14 @@
 package posmining
 
 import (
-	"bytes"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/Shushsa/plan/x/coins"
 	"github.com/Shushsa/plan/x/posmining/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
-	k.SetCorrection(ctx, data.Correction)
-
 	defaultCoin := coins.GetDefaultCoin()
 
 	for _, record := range data.Records {
@@ -31,14 +28,14 @@ func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 		var posmining types.Posmining
 
 		// Regulation record
-		if bytes.Compare(iterator.Key(), []byte("correction")) == 0 {
-			continue
-		}
+		//if bytes.Compare(iterator.Key(), []byte("correction")) == 0 {
+		//	continue
+		//}
 
 		k.Cdc.MustUnmarshalBinaryBare(iterator.Value(), &posmining)
 
 		records = append(records, posmining)
 	}
 
-	return NewGenesisState(k.GetCorrection(ctx), records)
+	return NewGenesisState(records)
 }

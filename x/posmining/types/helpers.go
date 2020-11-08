@@ -1,9 +1,10 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Для подсчета начисляемых токенов за какое-то время (сутки, час, минута, секунда)
@@ -15,7 +16,7 @@ type CoinsPerTime struct {
 }
 
 // Calculates and returns new CoinsPerTime
-func NewCoinsPerTime(balance sdk.Int, dailyPercent sdk.Int, structureCoff sdk.Int, savingsCoff sdk.Int, regulationCOff sdk.Int) CoinsPerTime {
+func NewCoinsPerTime(balance sdk.Int, dailyPercent sdk.Int, structureCoff sdk.Int, savingsCoff sdk.Int) CoinsPerTime {
 	result := CoinsPerTime{
 		Day:    sdk.NewInt(0),
 		Hour:   sdk.NewInt(0),
@@ -37,11 +38,6 @@ func NewCoinsPerTime(balance sdk.Int, dailyPercent sdk.Int, structureCoff sdk.In
 		toQuo = toQuo.MulRaw(100)
 	}
 
-	if regulationCOff.IsZero() == false {
-		actualPercent = actualPercent.Mul(regulationCOff)
-		toQuo = toQuo.MulRaw(100)
-	}
-
 	result.Day = balance.Mul(actualPercent).Quo(toQuo)
 	result.Hour = result.Day.QuoRaw(24)
 	result.Minute = result.Hour.QuoRaw(60)
@@ -50,15 +46,13 @@ func NewCoinsPerTime(balance sdk.Int, dailyPercent sdk.Int, structureCoff sdk.In
 	return result
 }
 
-
 // Time difference
 type TimeDifference struct {
 	Days    sdk.Int `json:"days"`    // Кол-во days
 	Hours   sdk.Int `json:"hours"`   // Кол-во часов
 	Minutes sdk.Int `json:"minutes"` // Кол-во минут
 	Seconds sdk.Int `json:"seconds"` // Кол-во секунд
-
-	Total sdk.Int `json:"total"` // Общее время в секундах
+	Total   sdk.Int `json:"total"`   // Общее время в секундах
 }
 
 // Creates new time difference based on the seconds difference
@@ -105,13 +99,11 @@ func NewTimeDifference(seconds sdk.Int) TimeDifference {
 	return difference
 }
 
-
 // A single posmining period
 type PosminingPeriod struct {
-	Start          time.Time `json:"start"`       // Начало периода
-	End            time.Time `json:"end"`         // конец периода
-	CorrectionCoff sdk.Int   `json:"regulation"`  // Регуляция
-	SavingCoff     sdk.Int   `json:"saving_coff"` // Коэффициент накопления
+	Start      time.Time `json:"start"`       // Начало периода
+	End        time.Time `json:"end"`         // конец периода
+	SavingCoff sdk.Int   `json:"saving_coff"` // Коэффициент накопления
 }
 
 // Hoe much time pass between Start and End
@@ -119,34 +111,33 @@ func (p PosminingPeriod) TimePass() TimeDifference {
 	return NewTimeDifference(sdk.NewInt(int64(p.End.Sub(p.Start).Seconds())))
 }
 
-func NewPosminingPeriod(start time.Time, end time.Time, regulationCoff sdk.Int, savingCoff sdk.Int) PosminingPeriod {
+func NewPosminingPeriod(start time.Time, end time.Time, savingCoff sdk.Int) PosminingPeriod {
 	return PosminingPeriod{
 		start,
 		end,
-		regulationCoff,
 		savingCoff,
 	}
 }
 
 // A group of posmining periods
 type PosminingGroup struct {
-	Paramined  sdk.Int           `json:"paramined"`  // How many coins paramined during period
-	Balance    sdk.Int           `json:"balance"`    // Current balance
-	Posmining Posmining        `json:"posmining"` // Current balance
-	Periods    []PosminingPeriod `json:"periods"`    // Posmining periods
+	Paramined sdk.Int           `json:"paramined"` // How many coins paramined during period
+	Balance   sdk.Int           `json:"balance"`   // Current balance
+	Posmining Posmining         `json:"posmining"` // Current balance
+	Periods   []PosminingPeriod `json:"periods"`   // Posmining periods
 }
 
 func NewPosminingGroup(posmining Posmining, balance sdk.Int) PosminingGroup {
 	return PosminingGroup{
 		Paramined: sdk.NewInt(0),
-		Balance: balance,
+		Balance:   balance,
 		Posmining: posmining,
 	}
 }
 
 // Adds a posmining period
 func (p *PosminingGroup) Add(period PosminingPeriod) {
-	perTime := NewCoinsPerTime(p.Balance, p.Posmining.DailyPercent, p.Posmining.StructureCoff, period.SavingCoff, period.CorrectionCoff)
+	perTime := NewCoinsPerTime(p.Balance, p.Posmining.DailyPercent, p.Posmining.StructureCoff, period.SavingCoff)
 
 	timeDiff := period.TimePass()
 
