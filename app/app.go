@@ -399,6 +399,25 @@ func (app *NewApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	// Check if we should change regulation based on the price every 100 blocks
 	if ctx.BlockHeight()%100 == 0 {
+		/*client := http.Client{
+			Timeout: 5 * time.Second, // 5 seconds timeout
+		}
+
+		resp, err := client.Get("https://api.plancoin-crypto.com/correction/price")
+
+		if err != nil {
+			return app.mm.EndBlock(ctx, req)
+		}
+
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+
+		// Some problems with parsing the body
+		if err != nil {
+			return app.mm.EndBlock(ctx, req)
+		}*/
+
 		price, isOk := sdk.NewIntFromString("1")
 
 		if !isOk {
@@ -406,6 +425,7 @@ func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Re
 		}
 
 		// Update posmining correction and also the creation price
+		app.posminingKeeper.UpdateRegulation(ctx, price)
 		app.coinsKeeper.UpdateCreationPrice(ctx, price)
 	}
 

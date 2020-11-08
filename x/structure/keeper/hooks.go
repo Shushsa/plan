@@ -1,9 +1,9 @@
 package keeper
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/Shushsa/plan/x/coins"
 	planTypes "github.com/Shushsa/plan/x/plancoin/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // This hook should be called when we change the structure balance
@@ -40,7 +40,7 @@ func (k Keeper) GenerateAfterTransferHook() func(ctx sdk.Context, from sdk.AccAd
 	}
 }
 
-// Generates a hook that would be called after charging posmined coins
+// Generates a hook that would be called after charging paramined coins
 func (k Keeper) GeneratePosminingChargedHook() func(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Int, coin coins.Coin) {
 	return func(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Int, coin coins.Coin) {
 		// Increase structure balance

@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
@@ -14,7 +13,7 @@ const (
 
 // Parameter store keys
 var (
-	CreationPriceInUSD = sdk.NewInt(100) // 1.00 USD
+	CreationPriceInUSD = sdk.NewInt(5000) // 50.00 USD
 )
 
 // ParamKeyTable for coins module
@@ -28,19 +27,21 @@ type Params struct {
 
 // NewParams creates a new Params object
 func NewParams() Params {
-	return Params{}
+	return Params{
+	}
 }
 
 // String implements the stringer interface for Params
 func (p Params) String() string {
 	return fmt.Sprintf(`
 	// TODO: Return all the params as a string
-	`)
+	`, )
 }
 
 // ParamSetPairs - Implements params.ParamSet
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{}
+	return params.ParamSetPairs{
+	}
 }
 
 // DefaultParams defines the parameters for this module
