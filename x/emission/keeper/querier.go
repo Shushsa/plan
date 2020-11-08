@@ -1,45 +1,33 @@
 package keeper
 
 import (
-	"github.com/Shushsa/plan/x/coins"
-	"github.com/Shushsa/plan/x/emission/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// NewQuerier creates a new querier for emission clients.
-func NewQuerier(k Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
+const (
+	QueryGet = "get"
+)
+
+// NewQuerier is the module level router for state queries
+func NewQuerier(keeper Keeper) sdk.Querier {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
-		case types.QueryGetEmission:
-			return getEmission(ctx, path, k)
+		case QueryGet:
+			return queryGet(ctx, keeper)
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown emission query endpoint")
+			return nil, sdk.ErrUnknownRequest("Unknown emission query endpoint")
 		}
 	}
 }
 
-// Returns list of the all available coins
-func getEmission(ctx sdk.Context, path []string, k Keeper) ([]byte, error) {
-	var coin coins.Coin
-
-	if path[1] == "plan" {
-		coin = coins.GetDefaultCoin()
-	} else {
-		coin = coins.Coin{
-			Symbol: path[1],
-		}
-	}
-
-	emission := k.GetEmission(ctx, coin)
-
-	res, err := codec.MarshalJSONIndent(k.Cdc, types.NewQueryResGetEmission(emission, coin))
+// Получаем текущую эмиссию
+func queryGet(ctx sdk.Context, keeper Keeper) ([]byte, sdk.Error) {
+	res, err := codec.MarshalJSONIndent(keeper.cdc, keeper.GetEmission(ctx))
 
 	if err != nil {
-		return res, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		panic("could not marshal result to JSON")
 	}
 
 	return res, nil

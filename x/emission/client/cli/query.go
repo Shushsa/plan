@@ -2,52 +2,47 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/Shushsa/plan/x/emission/types"
+	"github.com/plan-crypto/node/x/emission/types"
+	"github.com/spf13/cobra"
 )
 
-// GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	// Group emission queries under a subcommand
-	emissionQueryCmd := &cobra.Command{
+func GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+	planQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
+		Short:                      "Querying commands for the paramining module",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
+	planQueryCmd.AddCommand(client.GetCommands(
+		GetCmdGetParamining(cdc),
+	)...)
 
-	emissionQueryCmd.AddCommand(
-		flags.GetCommands(
-			GetCmdGetEmission(queryRoute, cdc),
-		)...,
-	)
-
-	return emissionQueryCmd
+	return planQueryCmd
 }
 
-func GetCmdGetEmission(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetCmdResolveName queries information about a name
+func GetCmdGetParamining(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "get [coin]",
-		Short: "get coin",
-		Args:  cobra.ExactArgs(1),
+		Use:   "get",
+		Short: "get",
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			res, _, err := cliCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", queryRoute, types.QueryGetEmission, args[0]), nil)
+			res, _, err := cliCtx.QueryWithData("custom/emission/get", nil)
 
 			if err != nil {
-				fmt.Printf("could not get emission\n%s\n", err.Error())
+				fmt.Println("Cannot get emission\n")
 
 				return nil
 			}
 
-			var out types.QueryResGetEmission
+			var out types.Emission
 
 			cdc.MustUnmarshalJSON(res, &out)
 

@@ -4,18 +4,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
-// RegisterCodec registers concrete types on codec
-func RegisterCodec(cdc *codec.Codec) {
-	// TODO: Register the modules msgs
-	cdc.RegisterConcrete(MsgReinvest{}, "posmining/Reinvest", nil)
-}
-
-// ModuleCdc defines the module codec
-var ModuleCdc *codec.Codec
+var ModuleCdc = codec.New()
 
 func init() {
-	ModuleCdc = codec.New()
 	RegisterCodec(ModuleCdc)
-	codec.RegisterCrypto(ModuleCdc)
-	ModuleCdc.Seal()
+}
+
+// RegisterCodec registers concrete types on the Amino codec
+func RegisterCodec(cdc *codec.Codec) {
+	cdc.RegisterConcrete(MsgReinvest{}, "paramining/Reinvest", nil)
 }

@@ -2,43 +2,38 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/Shushsa/plan/x/posmining/types"
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// NewQuerier creates a new querier for posmining clients.
+const (
+	QueryGet = "get"
+)
+
+// NewQuerier is the module level router for state queries
 func NewQuerier(k Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) (res []byte, err sdk.Error) {
 		switch path[0] {
-		case types.QueryGetPosmining:
-			return queryGetPosmining(ctx, path, k)
+		case QueryGet:
+			return queryGet(ctx, path[1:], req, k)
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown posmining query endpoint")
+			return nil, sdk.ErrUnknownRequest("Unknown paramining query endpoint")
 		}
 	}
 }
 
-// Returns a posmining record
-func queryGetPosmining(ctx sdk.Context, path []string, k Keeper) ([]byte, error) {
-	addr, err := sdk.AccAddressFromBech32(path[1])
+// Returns the paramining record
+func queryGet(ctx sdk.Context, path []string, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+	addr, err := sdk.AccAddressFromBech32(path[0])
 
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return []byte{}, sdk.ErrUnknownRequest("Wrong address")
 	}
 
-	coin, err := k.CoinsKeeper.GetCoin(ctx, path[2])
+	res, err := codec.MarshalJSONIndent(k.cdc, k.GetParaminingResolve(ctx, addr))
 
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	res, err := codec.MarshalJSONIndent(k.Cdc, k.GetPosminingResolve(ctx, addr, coin))
-
-	if err != nil {
-		return res, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		panic("could not marshal result to JSON")
 	}
 
 	return res, nil

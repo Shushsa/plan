@@ -1,58 +1,43 @@
 package cli
 
 import (
-	"bufio"
-	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/Shushsa/plan/x/coins"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/Shushsa/plan/x/posmining/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	"github.com/plan-crypto/node/x/paramining/types"
 )
 
-// GetTxCmd returns the transaction commands for this module
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	posminingTxCmd := &cobra.Command{
+	plnTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
+		Short:                      "Paramining transaction subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
-	posminingTxCmd.AddCommand(flags.PostCommands(
+	plnTxCmd.AddCommand(client.PostCommands(
 		GetCmdReinvest(cdc),
-		// TODO: Add tx based commands
-		// GetCmd<Action>(cdc)
 	)...)
 
-	return posminingTxCmd
+	return plnTxCmd
 }
 
 func GetCmdReinvest(cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "reinvest [coin]",
-		Short: "Gets posmining of the desired coin by sending a reinvest transaction",
-		Args:  cobra.ExactArgs(1),
+		Use:   "reinvest",
+		Short: "Gets paramining by sending a reinvest transaction",
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 
-			coin := coins.Coin{
-				Default: args[0] == "plan",
-				Symbol:  args[0],
-			}
-
-			msg := types.NewMsgReinvest(cliCtx.GetFromAddress(), coin)
-
+			msg := types.NewMsgReinvest(cliCtx.GetFromAddress())
 			err := msg.ValidateBasic()
 
 			if err != nil {

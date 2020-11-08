@@ -1,43 +1,33 @@
 package keeper
 
 import (
-	"fmt"
-	"github.com/Shushsa/plan/x/coins"
-
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/Shushsa/plan/x/structure/types"
-	planTypes "github.com/Shushsa/plan/x/plancoin/types"
+	plnTypes "github.com/plan-crypto/node/x/plan/types"
+	"github.com/plan-crypto/node/x/structure/types"
 )
 
-// Keeper of the structure store
 type Keeper struct {
 	storeKey      sdk.StoreKey
 	fastAccessKey sdk.StoreKey
 
-	CoinsKeeper    coins.Keeper
-
 	structureChangedHooks []StructureChangedHook
 
-	Cdc        *codec.Codec
+	cdc *codec.Codec
 }
 
-// NewKeeper creates a structure keeper
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, fastAccessKey sdk.StoreKey, coinsKeeper coins.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, fastAccessKey sdk.StoreKey) Keeper {
 	return Keeper{
-		Cdc:           cdc,
+		cdc:           cdc,
 		storeKey:      storeKey,
 		fastAccessKey: fastAccessKey,
-		CoinsKeeper: coinsKeeper,
 		structureChangedHooks: make([]StructureChangedHook, 0),
 	}
 }
 
 
 // Adds address to the owner's structure if he's already not a part of some structure
-func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sdk.AccAddress, coinsAmount sdk.Int, coin coins.Coin) bool {
+func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sdk.AccAddress, coinsAmount sdk.Int) bool {
 	// Already has an upper structure
 	if k.HasUpperStructure(ctx, address) {
 		return false
@@ -48,9 +38,9 @@ func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sd
 
 	one := sdk.NewInt(1)
 
-	ownerStructure := k.GetStructure(ctx, owner, coin)
-
 	// Get upper structure and update all the info
+	ownerStructure := k.GetStructure(ctx, owner)
+
 	ownerPreviousBalance := ownerStructure.Balance
 
 	ownerStructure.Balance = ownerStructure.Balance.Add(coinsAmount)
@@ -60,25 +50,24 @@ func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sd
 		ownerStructure.MaxLevel = one
 	}
 
-	k.SetStructure(ctx, ownerStructure, coin)
+	k.SetStructure(ctx, ownerStructure)
 
 	// Calling hooks
 	for _, hook := range k.structureChangedHooks {
-		hook(ctx, owner, ownerStructure.Balance, ownerPreviousBalance, coin)
+		hook(ctx, owner, ownerStructure.Balance, ownerPreviousBalance)
 	}
 
 	// Going up to the above structure
 	nextOwner := k.GetUpperStructure(ctx, owner).Owner
 	currentLevel := sdk.NewInt(2)
-	maxLevel := planTypes.GetMaxLevel()
-
+	maxLevel := plnTypes.GetMaxLevel()
 
 	for {
 		// The end
 		if nextOwner.Empty() || currentLevel.GT(maxLevel) {
 			// Отнимаем баланс у 101 уровня, т.к. этот address уже не входит в его структуру
 			if currentLevel.GT(maxLevel) && nextOwner.Empty() == false {
-				topOwnerStructure := k.GetStructure(ctx, nextOwner, coin)
+				topOwnerStructure := k.GetStructure(ctx, nextOwner)
 				previousBalance := topOwnerStructure.Balance
 				topOwnerStructure.Balance = topOwnerStructure.Balance.Sub(coinsAmount)
 
@@ -86,11 +75,11 @@ func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sd
 					topOwnerStructure.Balance = sdk.NewInt(0)
 				}
 
-				k.SetStructure(ctx, topOwnerStructure, coin)
+				k.SetStructure(ctx, topOwnerStructure)
 
 				// Calling hooks
 				for _, hook := range k.structureChangedHooks {
-					hook(ctx, nextOwner, topOwnerStructure.Balance, previousBalance, coin)
+					hook(ctx, nextOwner, topOwnerStructure.Balance, previousBalance)
 				}
 			}
 
@@ -98,7 +87,7 @@ func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sd
 		}
 
 		// Updating the structure
-		currentStructure := k.GetStructure(ctx, nextOwner, coin)
+		currentStructure := k.GetStructure(ctx, nextOwner)
 
 		currentStructure.Followers = currentStructure.Followers.Add(one)
 
@@ -106,7 +95,7 @@ func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sd
 			currentStructure.MaxLevel = currentLevel
 		}
 
-		k.SetStructure(ctx, currentStructure, coin)
+		k.SetStructure(ctx, currentStructure)
 
 		currentLevel = currentLevel.AddRaw(1)
 
@@ -119,14 +108,14 @@ func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sd
 
 
 // Increase structure balance by coinsAmount
-func (k Keeper) IncreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress, coinsAmount sdk.Int, coin coins.Coin) {
+func (k Keeper) IncreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress, coinsAmount sdk.Int) {
 	if coinsAmount.IsZero() {
 		return
 	}
 
 	nextOwner := k.GetUpperStructure(ctx, address).Owner
 	currentLevel := sdk.NewInt(1)
-	maxLevel := planTypes.GetMaxLevel()
+	maxLevel := plnTypes.GetMaxLevel()
 
 	// Going through all the available level (until we reach 100 or genesis wallet)
 	for {
@@ -136,18 +125,18 @@ func (k Keeper) IncreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress
 		}
 
 		// Taking the current structure
-		currentStructure := k.GetStructure(ctx, nextOwner, coin)
+		currentStructure := k.GetStructure(ctx, nextOwner)
 
 		previousBalance := currentStructure.Balance
 
 		// Adding coins
 		currentStructure.Balance = currentStructure.Balance.Add(coinsAmount)
 
-		k.SetStructure(ctx, currentStructure, coin)
+		k.SetStructure(ctx, currentStructure)
 
 		// Calling the hooks
 		for _, hook := range k.structureChangedHooks {
-			hook(ctx, nextOwner, currentStructure.Balance, previousBalance, coin)
+			hook(ctx, nextOwner, currentStructure.Balance, previousBalance)
 		}
 
 		// Getting the next one
@@ -159,14 +148,14 @@ func (k Keeper) IncreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress
 
 
 // Decrease structure balance
-func (k Keeper) DecreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress, coinsAmount sdk.Int, coin coins.Coin) {
+func (k Keeper) DecreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress, coinsAmount sdk.Int) {
 	if coinsAmount.IsZero() {
 		return
 	}
 
 	nextOwner := k.GetUpperStructure(ctx, address).Owner
 	currentLevel := sdk.NewInt(1)
-	maxLevel := planTypes.GetMaxLevel()
+	maxLevel := plnTypes.GetMaxLevel()
 
 	// Going through all the available level (until we reach 100 or genesis wallet)
 	for {
@@ -176,7 +165,7 @@ func (k Keeper) DecreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress
 		}
 
 		// Taking the current structure
-		currentStructure := k.GetStructure(ctx, nextOwner, coin)
+		currentStructure := k.GetStructure(ctx, nextOwner)
 
 		previousBalance := currentStructure.Balance
 
@@ -188,11 +177,11 @@ func (k Keeper) DecreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress
 			currentStructure.Balance = sdk.NewInt(0)
 		}
 
-		k.SetStructure(ctx, currentStructure, coin)
+		k.SetStructure(ctx, currentStructure)
 
 		// Calling the hooks
 		for _, hook := range k.structureChangedHooks {
-			hook(ctx, nextOwner, currentStructure.Balance, previousBalance, coin)
+			hook(ctx, nextOwner, currentStructure.Balance, previousBalance)
 		}
 
 		// Getting the next one
@@ -200,10 +189,4 @@ func (k Keeper) DecreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress
 
 		currentLevel = currentLevel.AddRaw(1)
 	}
-}
-
-
-// Logger returns a module-specific logger.
-func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }

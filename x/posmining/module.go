@@ -1,141 +1,122 @@
-package posmining
+package paramining
+
 
 import (
 	"encoding/json"
+	"github.com/plan-crypto/node/x/paramining/keeper"
 
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
-
-	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/Shushsa/plan/x/posmining/client/cli"
-	"github.com/Shushsa/plan/x/posmining/client/rest"
+	sdk_module "github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/gorilla/mux"
+	"github.com/plan-crypto/node/x/paramining/client/cli"
+	"github.com/plan-crypto/node/x/paramining/client/rest"
+	ptypes "github.com/plan-crypto/node/x/paramining/types"
+	"github.com/spf13/cobra"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// Type check to ensure the interface is properly implemented
 var (
-	_ module.AppModule           = AppModule{}
-	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ sdk_module.AppModule      = AppModule{}
+	_ sdk_module.AppModuleBasic = AppModuleBasic{}
 )
 
-// AppModuleBasic defines the basic application module used by the posmining module.
+const ModuleName = "paramining"
+
+// app module Basics object
 type AppModuleBasic struct{}
 
-// Name returns the posmining module's name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
-// RegisterCodec registers the posmining module's types for the given codec.
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	RegisterCodec(cdc)
+	ptypes.RegisterCodec(cdc)
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the posmining
-// module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
+	return ptypes.ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
-// ValidateGenesis performs genesis state validation for the posmining module.
+// Validation check of the Genesis
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	var data GenesisState
-	err := ModuleCdc.UnmarshalJSON(bz, &data)
+	err := ptypes.ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
+	// once json successfully marshalled, passes along to genesis.go
 	return ValidateGenesis(data)
 }
 
-// RegisterRESTRoutes registers the REST routes for the posmining module.
+// Register rest routes
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd returns the root tx command for the posmining module.
+// Get the root query command of this module
+func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetQueryCmd(cdc)
+}
+
+// Get the root tx command of this module
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetTxCmd(cdc)
 }
 
-// GetQueryCmd returns no root query command for the posmining module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(StoreKey, cdc)
-}
 
-//____________________________________________________________________________
-
-// AppModule implements an application module for the posmining module.
 type AppModule struct {
 	AppModuleBasic
-
-	keeper        Keeper
-	// TODO: Add keepers that your application depends on
+	keeper     keeper.Keeper
 }
 
-// NewAppModule creates a new AppModule object
-func NewAppModule(k Keeper, /*TODO: Add Keepers that your application depends on*/) AppModule {
+// NewAppModule creates a new AppModule Object
+func NewAppModule(k keeper.Keeper) AppModule {
 	return AppModule{
-		AppModuleBasic:      AppModuleBasic{},
-		keeper:              k,
-		// TODO: Add keepers that your application depends on
+		AppModuleBasic: AppModuleBasic{},
+		keeper:         k,
 	}
 }
 
-// Name returns the posmining module's name.
 func (AppModule) Name() string {
 	return ModuleName
 }
 
-// RegisterInvariants registers the posmining module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
 
-// Route returns the message routing key for the posmining module.
-func (AppModule) Route() string {
-	return RouterKey
+func (am AppModule) Route() string {
+	return ModuleName
 }
 
-// NewHandler returns an sdk.Handler for the posmining module.
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
+func (am AppModule) NewHandler() types.Handler {
+	return keeper.NewHandler(am.keeper)
 }
 
-// QuerierRoute returns the posmining module's querier route name.
-func (AppModule) QuerierRoute() string {
-	return QuerierRoute
+func (am AppModule) QuerierRoute() string {
+	return ModuleName
 }
 
-// NewQuerierHandler returns the posmining module sdk.Querier.
-func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return NewQuerier(am.keeper)
+func (am AppModule) NewQuerierHandler() types.Querier {
+	return keeper.NewQuerier(am.keeper)
 }
 
-// InitGenesis performs genesis initialization for the posmining module. It returns
-// no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
-	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
+func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
+
+
+func (am AppModule) EndBlock(types.Context, abci.RequestEndBlock) ([]abci.ValidatorUpdate) {
 	return []abci.ValidatorUpdate{}
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the posmining
-// module.
+func (am AppModule) InitGenesis(ctx types.Context, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState GenesisState
+	ptypes.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	return InitGenesis(ctx, am.keeper, genesisState)
+}
+
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
-	return ModuleCdc.MustMarshalJSON(gs)
-}
-
-// BeginBlock returns the begin blocker for the posmining module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	BeginBlocker(ctx, req, am.keeper)
-}
-
-// EndBlock returns the end blocker for the posmining module. It returns no validator
-// updates.
-func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
+	return ptypes.ModuleCdc.MustMarshalJSON(gs)
 }

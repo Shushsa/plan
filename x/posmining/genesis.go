@@ -1,44 +1,52 @@
-package posmining
+package paramining
 
 import (
-	"bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/Shushsa/plan/x/coins"
-	"github.com/Shushsa/plan/x/posmining/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/plan-crypto/node/x/paramining/types"
+	"github.com/plan-crypto/node/x/paramining/keeper"
 )
 
-// InitGenesis initialize default parameters
-// and the keeper's address to pubkey map
-func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
-	k.SetCorrection(ctx, data.Correction)
+type GenesisState struct {
+	ParaminingRecords []types.Paramining `json:"paramining_records"`
+}
 
-	defaultCoin := coins.GetDefaultCoin()
-
-	for _, record := range data.Records {
-		k.SetPosmining(ctx, record, defaultCoin)
+// Genesis initialization
+func NewGenesisState() GenesisState {
+	return GenesisState{
+		ParaminingRecords: []types.Paramining{},
 	}
 }
 
-// ExportGenesis writes the current store values
-// to a genesis file, which can be imported again
-// with InitGenesis
-func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
-	var records []types.Posmining
+// Genesis validation
+func ValidateGenesis(data GenesisState) error {
+	return nil
+}
 
-	iterator := k.GetPosminingIterator(ctx)
+// Genesis default state
+func DefaultGenesisState() GenesisState {
+	return GenesisState{
+		ParaminingRecords: []types.Paramining{},
+	}
+}
+
+// Genesis init
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, data GenesisState) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
+}
+
+// Genesis export
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) GenesisState {
+	var paraminingRecords []types.Paramining
+
+	iterator := k.GetParaminingIterator(ctx)
 
 	for ; iterator.Valid(); iterator.Next() {
-		var posmining types.Posmining
+		addr := sdk.AccAddress(iterator.Key())
 
-		// Regulation record
-		if bytes.Compare(iterator.Key(), []byte("correction")) == 0 {
-			continue
-		}
-
-		k.Cdc.MustUnmarshalBinaryBare(iterator.Value(), &posmining)
-
-		records = append(records, posmining)
+		paramining := k.GetParamining(ctx, addr)
+		paraminingRecords = append(paraminingRecords, paramining)
 	}
 
-	return NewGenesisState(k.GetCorrection(ctx), records)
+	return GenesisState{ParaminingRecords: paraminingRecords}
 }

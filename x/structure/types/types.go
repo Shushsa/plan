@@ -41,4 +41,3 @@ func NewStructure(owner sdk.AccAddress) Structure {
 		MaxLevel: sdk.NewInt(0),
 	}
 }
-
