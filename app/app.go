@@ -406,6 +406,7 @@ func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Re
 		}
 
 		// Update posmining correction and also the creation price
+		app.posminingKeeper.UpdateRegulation(ctx, price)
 		app.coinsKeeper.UpdateCreationPrice(ctx, price)
 	}
 

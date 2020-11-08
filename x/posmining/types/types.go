@@ -39,7 +39,7 @@ type Posmining struct {
 	DailyPercent  sdk.Int `json:"daily_percent"`  // Дневной процент начисления парамайнинга
 	StructureCoff sdk.Int `json:"structure_coff"` // Коэффициент структуры
 
-	Paramined sdk.Int `json:"paramined"` // Как много токенов уже напарамайнено, но не снято - юзаем для расчета при изменении условий
+	Posmined sdk.Int `json:"posmined"` // Как много токенов уже напарамайнено, но не снято - юзаем для расчета при изменении условий
 
 	LastTransaction time.Time `json:"last_transaction"` // Когда последний раз была исходящая транзакция
 	LastCharged     time.Time `json:"last_charged"`     // Когда последний раз был charge (начисление парамайнинга)
@@ -49,8 +49,41 @@ type Posmining struct {
 func NewPosmining(owner sdk.AccAddress) Posmining {
 	return Posmining{
 		Owner:         owner,
-		Paramined:     sdk.NewInt(0),
+		Posmined:      sdk.NewInt(0),
 		DailyPercent:  sdk.NewInt(0),
 		StructureCoff: sdk.NewInt(0),
 	}
+}
+
+// Current Correction
+type Correction struct {
+	StartDate      time.Time `json:"start_date"`      // datetime of the updated coff
+	OpeningPrice   sdk.Int   `json:"opening_price"`   // the market price being used
+	CorrectionCoff sdk.Int   `json:"correction_coff"` // regulator coff
+
+	PreviousCorrections []PreviousCorrection `json:"previous_corrections"` // previous regulation periods
+}
+
+// Updates the regulation when we get new market data
+func (t *Correction) Update(current time.Time, price sdk.Int, coff sdk.Int) {
+	prev := PreviousCorrection{
+		StartDate:      t.StartDate,
+		EndDate:        current,
+		OpeningPrice:   t.OpeningPrice,
+		CorrectionCoff: t.CorrectionCoff,
+	}
+
+	t.PreviousCorrections = append([]PreviousCorrection{prev}, t.PreviousCorrections...)
+
+	t.StartDate = current
+	t.OpeningPrice = price
+	t.CorrectionCoff = coff
+}
+
+type PreviousCorrection struct {
+	StartDate time.Time `json:"start_date"` // дата и время начала регуляции
+	EndDate   time.Time `json:"end_date"`   // дата и время конца регуляции
+
+	OpeningPrice   sdk.Int `json:"opening_price"`   // цена, при которой поменялась регуляция
+	CorrectionCoff sdk.Int `json:"regulation_coff"` // коэффициент коррекции
 }

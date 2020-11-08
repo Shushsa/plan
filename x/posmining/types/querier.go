@@ -10,10 +10,15 @@ const (
 type PosminingResolve struct {
 	Coin string `json:"coin"`
 
-	Posmined     sdk.Int      `json:"posmined"`
-	Paramined    sdk.Int      `json:"paramined"` // old versions
+	Posmined    sdk.Int      `json:"posmined"`
+	Posmined    sdk.Int      `json:"posmined"` // old versions
+
 	SavingsCoff  sdk.Int      `json:"savings_coff"`
-	Posmining    Posmining    `json:"posmining"`
+
+	CorrectionCoff  sdk.Int      `json:"correction_coff"`
+
+	Posmining   Posmining   `json:"posmining"`
+
 	CoinsPerTime CoinsPerTime `json:"coins_per_time"`
 }
 

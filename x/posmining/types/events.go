@@ -16,5 +16,5 @@ const (
 	EventTypePosminingCharged   = "posmining_charged"
 	EventTypePosminingRevinest   = "posmining_reinvest"
 
-	AttributeParamined = "paramined"
+	AttributePosmined = "posmined"
 )

@@ -1,9 +1,9 @@
 package keeper
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/Shushsa/plan/x/coins"
 	planTypes "github.com/Shushsa/plan/x/plancoin/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // This hook should be called when we change the structure balance

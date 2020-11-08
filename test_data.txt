@@ -1,26 +1,25 @@
-go get ./...
+
 
 plancoin
 
 plancoincli keys add overlord
 
-{
-  "name": "overlord",
-  "type": "local",
-  "address": "plan1uk5xpx3zgevdpvakymzvpp2twzxd39rw3zn56k",
-  "pubkey": "planpub1addwnpepqfwa3qdna27zd5cjec3lyyjvc4cz59394j2wg4e7ysynzvtg54teulfg2un",
-  "mnemonic": "property annual milk fine multiply trash distance rude video sad rose cave loan advice bright gown tired loan keen drama sure inside asset fatal"
-}
+- name: overlord
+  type: local
+  address: plan1hf008ysfgkuc202m0mm6jt6jkkyrlx4507cwyv
+  pubkey: planpub1addwnpepqgfpjnn4k9nctswfp723vuevvyrrvjcpadk0fsagj4jggrx2rjzn6l9xfsn
+  mnemonic: ""
+  threshold: 0
+  pubkeys: []
+
+  
+great prefer asthma rather usage salute hurry witness move pear salmon asthma result farm climb warrior now galaxy drip weasel whale prevent sniff tennis
 
 
+plancoin
 
 
-
-plancoincli tx send plan12hyr3camgvcdf0jffvg50cr92frct3wgmxc4fl plan1uk5xpx3zgevdpvakymzvpp2twzxd39rw3zn56k 1000000plan --from bank2 --fees 100plan --gas auto --gas-adjustment 1.5
-
-plancoincli query account plan1uk5xpx3zgevdpvakymzvpp2twzxd39rw3zn56k
-plancoincli query posmining get plan1uk5xpx3zgevdpvakymzvpp2twzxd39rw3zn56k
-plancoincli tx posmining reinvest plan --from overlord --gas auto --gas-adjustment 1.5
+plancoincli tx send plan1nshyfwj4qmm2s2f5dzt9y7znypf797eph0a5d9 plan1tf8fff3h3uma3rqgm970nwufxuw6f8yt5a8k4f 80000000001plan --from cryptoslonik --fees 100plan --gas auto --gas-adjustment 1.5
 
 plancoincli tx staking create-validator --chain-id plancoin --amount 500000000plan --from "cryptoslonik" --moniker "Zyuzembik" --pubkey planconsopenpub1zcjduepqn8g8qr7p53j4uk4vtlch8elshv4etp6qapshhsjrnkn5ndruyvkqgjn6kx --details "details" --min-self-delegation 100000000 --commission-rate "0.05" --commission-max-rate "0.2" --commission-max-change-rate "0.01" --min-self-delegation 100000000 --chain-id plancoin
 
@@ -30,26 +29,21 @@ plancoincli tx staking create-validator --chain-id plancoin --amount 500000000pl
 
 PS N:\Go\src\plan-master> plancoincli keys add bank_1
 {
-  "name": "bank1",
+  "name": "bank_1",
   "type": "local",
-  "address": "plan1l75egsa6aa6zn49exkpvzvlha9qcas5jss7ws6",
-  "pubkey": "planpub1addwnpepqgj08hxudp44xq6dq6x6nqr6vmhggy3n2qq9vnv2tmgcm5ql0ckuu9608s7",
-  "mnemonic": "token habit version clog flee adapt omit tribe scrub filter shock wolf eight pistol pistol outdoor velvet city alarm thrive beach follow pottery company"
+  "address": "plan1myjgnyl8pef5r5whf8rmusu70qnm5s99f8p8c2",
+  "pubkey": "planpub1addwnpepqf47stuk2k2e32sn7q6tqdezrmppjfgzqt2mc3lvmxdvt8mjfhuw5ewj8ru",
+  "mnemonic": "issue seven van tooth mirror side govern raccoon vapor mandate rug cash agree artwork bus slice donate similar estate sail shove whisper squeeze match"
 }
-override the existing name bank2
+PS N:\Go\src\plan-master> plancoincli keys add bank_2
 {
-  "name": "bank2",
+  "name": "bank_2",
   "type": "local",
-  "address": "plan12hyr3camgvcdf0jffvg50cr92frct3wgmxc4fl",
-  "pubkey": "planpub1addwnpepqgr2gqe3z6gjsl432mmwvku06r0qw70w50d53q27g55fdn0fhs8gju93z4c",
-  "mnemonic": "ticket normal quality drama kingdom mosquito vital soup ridge destroy boil excuse trust client today spider moment elegant danger marble citizen barrel short harvest"
+  "address": "plan1n034xpz5lsltxqeumvw6mnk4h5h8kffy8hz23e",
+  "pubkey": "planpub1addwnpepqfwg38nz0wfvvrsnk75g74uuy4xrcgslgmpme4j0a74dgw5w6rj2vverwm0",
+  "mnemonic": "glide sword plug uncover fiber stand avocado diet solar avoid artist firm middle pig unaware crouch turtle sustain same tumble gain craft rookie jaguar"
 }
 
-
-
-================================================================================================================================================================================================================================================
-
-go get ./...
 plancoind init pvlnode --chain-id plancoinlab
 
 # Заменить stake на plan в 2 -х местах
@@ -61,8 +55,6 @@ plancoincli config trust-node true
 
 plancoincli keys add bank1
 plancoincli keys add bank2
-plancoincli keys add overlord
-plancoincli keys add test
 
 plancoind add-genesis-account $(plancoincli keys show bank1 -a) 3000000000000plan
 plancoind add-genesis-account $(plancoincli keys show bank2 -a) 3000000000000plan
@@ -97,17 +89,7 @@ plancoind init PVLnode --chain-id planmao
 plancoind export --for-zero-height --height=4000 > export.json
 
 
-================================================================================================================================================
 
-plancoincli tx send $(plancoincli keys show bank2 -a) $(plancoincli keys show overlord -a) 100000000000plan --from bank2 --fees 100plan --gas auto --gas-adjustment 1.5
-plancoincli tx send $(plancoincli keys show overlord -a) $(plancoincli keys show test -a) 1000000plan --from bank2 --fees 100plan --gas auto --gas-adjustment 1.5
-plancoincli query account $(plancoincli keys show test -a)
-plancoincli query account $(plancoincli keys show overlord -a)
-plancoincli query posmining get $(plancoincli keys show overlord -a)
-plancoincli tx posmining reinvest plan --from overlord --gas auto --gas-adjustment 1.5
-plancoincli query account $(plancoincli keys show overlord -a)
-
-================================================================================================================================================
 
 
 
@@ -123,6 +105,5 @@ plancoincli config trust-node true
 
 
 plancoincli tx posmining reinvest plan --from {имя_ключа}
-plancoincli tx posmining reinvest plan --from {имя_ключа} --gas auto --gas-adjustment 1.5
 
 plancoincli tx plancoin change-params --from "PVL"

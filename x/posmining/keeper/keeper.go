@@ -53,7 +53,7 @@ func (k Keeper) ChargePosmining(ctx sdk.Context, addr sdk.AccAddress, coin coins
 
 	posMined := k.CalculatePosmined(ctx, posmining, coin, balance)
 
-	posmining.Paramined = sdk.NewInt(0)
+	posmining.Posmined = sdk.NewInt(0)
 
 	// Since reinvest doesn't reset "last transaction" field
 	if !isReinvest {
@@ -76,7 +76,7 @@ func (k Keeper) ChargePosmining(ctx sdk.Context, addr sdk.AccAddress, coin coins
 			sdk.NewEvent(
 				types.EventTypePosminingCharged,
 				sdk.NewAttribute(sdk.AttributeKeySender, addr.String()),
-				sdk.NewAttribute(types.AttributeParamined, posMined.String()),
+				sdk.NewAttribute(types.AttributePosmined, posMined.String()),
 			),
 		)
 
@@ -94,7 +94,7 @@ func (k Keeper) SavePosmined(ctx sdk.Context, addr sdk.AccAddress, coin coins.Co
 
 	posMined := k.CalculatePosmined(ctx, posmining, coin, balance)
 
-	posmining.Paramined = posMined
+	posmining.Posmined = posMined
 	posmining.LastCharged = ctx.BlockHeader().Time
 
 	k.SetPosmining(ctx, posmining, coin)
@@ -114,6 +114,20 @@ func (k Keeper) UpdateDailyPercent(ctx sdk.Context, addr sdk.AccAddress, coin co
 		posmining.DailyPercent = newDailyPercent
 
 		k.SetPosmining(ctx, posmining, coin)
+	}
+}
+
+// Fetches the current price and updates posmining regulation
+func (k Keeper) UpdateRegulation(ctx sdk.Context, currentPrice sdk.Int) {
+	regulation := k.GetCorrection(ctx)
+
+	coff := sdk.NewInt(100)
+
+	// If the coff should be changed and since the latest update passed at least types.CorrectionUpdatePeriod hours
+	if !regulation.CorrectionCoff.Equal(coff) && ctx.BlockTime().Sub(regulation.StartDate).Hours() >= types.CorrectionUpdatePeriod {
+		regulation.Update(ctx.BlockTime(), currentPrice, coff)
+
+		k.SetCorrection(ctx, regulation)
 	}
 }
 
@@ -141,23 +155,24 @@ func (k Keeper) GetPosminingResolve(ctx sdk.Context, owner sdk.AccAddress, coin 
 	if len(posminingGroup.Periods) > 0 {
 		currentPeriod = posminingGroup.Periods[len(posminingGroup.Periods)-1]
 	} else {
-		currentPeriod = types.PosminingPeriod{SavingCoff: sdk.NewInt(0)}
+		currentPeriod = types.PosminingPeriod{SavingCoff: sdk.NewInt(0), CorrectionCoff: sdk.NewInt(0)}
 	}
 
-	if coin.PosminingThreshold.IsPositive() && balance.Add(posminingGroup.Paramined).GTE(coin.PosminingThreshold) {
-		posminingGroup.Paramined = sdk.NewInt(0)
+	if coin.PosminingThreshold.IsPositive() && balance.Add(posminingGroup.Posmined).GTE(coin.PosminingThreshold) {
+		posminingGroup.Posmined = sdk.NewInt(0)
 
 		if balance.GTE(coin.PosminingThreshold) {
-			posmining.Paramined = sdk.NewInt(0)
+			posmining.Posmined = sdk.NewInt(0)
 		}
 	}
 
 	return types.PosminingResolve{
-		Coin:         coin.Symbol,
-		Posmining:    posmining,
-		SavingsCoff:  currentPeriod.SavingCoff,
-		Posmined:     posmining.Paramined.Add(posminingGroup.Paramined),
-		Paramined:    posmining.Paramined.Add(posminingGroup.Paramined),
-		CoinsPerTime: types.NewCoinsPerTime(balance, posmining.DailyPercent, posmining.StructureCoff, currentPeriod.SavingCoff),
+		Coin:           coin.Symbol,
+		Posmining:      posmining,
+		SavingsCoff:    currentPeriod.SavingCoff,
+		CorrectionCoff: currentPeriod.CorrectionCoff,
+		Posmined:       posmining.Posmined.Add(posminingGroup.Posmined),
+		Posmined:       posmining.Posmined.Add(posminingGroup.Posmined),
+		CoinsPerTime:   types.NewCoinsPerTime(balance, posmining.DailyPercent, posmining.StructureCoff, currentPeriod.SavingCoff, currentPeriod.CorrectionCoff),
 	}
 }
