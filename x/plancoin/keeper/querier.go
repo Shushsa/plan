@@ -4,11 +4,11 @@ import (
 	"github.com/Shushsa/plan/x/coins"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/Shushsa/plan/x/plancoin/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/Shushsa/plan/x/plancoin/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 )
 
 // NewQuerier creates a new querier for plancoin clients.
@@ -41,8 +41,8 @@ func queryProfile(ctx sdk.Context, path []string, req abci.RequestQuery, keeper 
 	posmining := keeper.posminingKeeper.GetPosminingResolve(ctx, addr, coin)
 
 	res, codecErr := codec.MarshalJSONIndent(keeper.cdc, types.ProfileResolve{
-		Owner: addr,
-		Balance: balance.AmountOf(coin.Symbol),
+		Owner:     addr,
+		Balance:   balance.AmountOf(coin.Symbol),
 		Posmining: posmining,
 		Structure: keeper.structureKeeper.GetStructure(ctx, addr, coin),
 	})

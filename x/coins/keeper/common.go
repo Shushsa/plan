@@ -1,8 +1,8 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/Shushsa/plan/x/coins/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Saves coin
@@ -34,7 +34,6 @@ func (k Keeper) GetCoin(ctx sdk.Context, coinId string) (types.Coin, error) {
 	return coin, nil
 }
 
-
 // Returns the creation price record
 func (k Keeper) GetCreationPrice(ctx sdk.Context) (types.CreationPrice, error) {
 	store := ctx.KVStore(k.storeKey)
@@ -52,7 +51,6 @@ func (k Keeper) GetCreationPrice(ctx sdk.Context) (types.CreationPrice, error) {
 	return result, nil
 }
 
-
 // Sets the creation price record
 func (k Keeper) SetCreationPrice(ctx sdk.Context, price types.CreationPrice) {
 	store := ctx.KVStore(k.storeKey)
@@ -63,7 +61,6 @@ func (k Keeper) SetCreationPrice(ctx sdk.Context, price types.CreationPrice) {
 
 	store.Set(byteKey, bz)
 }
-
 
 // GetScavengesIterator gets an iterator over all scavnges in which the keys are the solutionHashes and the values are the scavenges
 func (k Keeper) GetCoinsIterator(ctx sdk.Context) sdk.Iterator {

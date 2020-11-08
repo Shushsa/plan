@@ -7,7 +7,6 @@ import (
 // `from` and `to` can be nill
 type CoinsTransferHook = func(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress, amt sdk.Coins)
 
-
 func (k *Keeper) AddBeforeHook(hook CoinsTransferHook) {
 	k.beforeTransferHooks = append(k.beforeTransferHooks, hook)
 }
@@ -15,7 +14,6 @@ func (k *Keeper) AddBeforeHook(hook CoinsTransferHook) {
 func (k *Keeper) AddAfterHook(hook CoinsTransferHook) {
 	k.afterTransferHooks = append(k.afterTransferHooks, hook)
 }
-
 
 func (k Keeper) beforeCoinsTransfer(ctx sdk.Context, from sdk.AccAddress, to sdk.AccAddress, amt sdk.Coins) {
 	for _, hook := range k.beforeTransferHooks {

@@ -2,10 +2,11 @@ package keeper
 
 import (
 	"fmt"
+
+	"github.com/Shushsa/plan/x/coins/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/Shushsa/plan/x/coins/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -33,9 +34,8 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-
 // Updates the required creation price based on the current coin price
-func (k Keeper) UpdateCreationPrice (ctx sdk.Context, currentPrice sdk.Int) sdk.Int {
+func (k Keeper) UpdateCreationPrice(ctx sdk.Context, currentPrice sdk.Int) sdk.Int {
 	newPrice := types.CreationPriceInUSD.Quo(currentPrice).MulRaw(1e6)
 
 	k.SetCreationPrice(ctx, types.CreationPrice{

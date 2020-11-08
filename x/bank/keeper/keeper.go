@@ -1,37 +1,36 @@
 package keeper
 
 import (
+	"github.com/Shushsa/plan/x/coins"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	sdkbank "github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/Shushsa/plan/x/coins"
 )
 
 type Keeper struct {
 	sdkbank.BaseKeeper
 
-	ak         auth.AccountKeeper
-	StakingKeeper    staking.Keeper
-	paramSpace params.Subspace
+	ak            auth.AccountKeeper
+	StakingKeeper staking.Keeper
+	paramSpace    params.Subspace
 
 	beforeTransferHooks []CoinsTransferHook
-	afterTransferHooks []CoinsTransferHook
+	afterTransferHooks  []CoinsTransferHook
 }
 
 func NewKeeper(
 	ak auth.AccountKeeper, paramSpace params.Subspace, blacklistedAddrs map[string]bool,
 ) Keeper {
 	return Keeper{
-		BaseKeeper: sdkbank.NewBaseKeeper(ak, paramSpace, blacklistedAddrs),
-		ak:             ak,
-		paramSpace:     paramSpace,
+		BaseKeeper:          sdkbank.NewBaseKeeper(ak, paramSpace, blacklistedAddrs),
+		ak:                  ak,
+		paramSpace:          paramSpace,
 		beforeTransferHooks: make([]CoinsTransferHook, 0),
-		afterTransferHooks: make([]CoinsTransferHook, 0),
+		afterTransferHooks:  make([]CoinsTransferHook, 0),
 	}
 }
-
 
 // Returns the balance that should be used during calculations of posmining
 func (k Keeper) GetPosminableBalance(ctx sdk.Context, addr sdk.AccAddress, coin coins.Coin) sdk.Int {
@@ -60,7 +59,6 @@ func (k Keeper) GetStackedCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coin {
 
 	return sdk.NewCoin("plan", result)
 }
-
 
 // SendCoins moves coins from one account to another
 func (keeper Keeper) SendCoins(

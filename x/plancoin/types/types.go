@@ -3,9 +3,9 @@ package types
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
 const (
-	PLAN                 = "plan"
-	POINTS               = 6        // points after comma
-	INITIAL              = 10000000 // initial emission
+	PLAN                = "plan"
+	POINTS              = 6        // points after comma
+	INITIAL             = 10000000 // initial emission
 	POSMINING_THRESHOLD = 2000000  // posmining threshold
 )
 
