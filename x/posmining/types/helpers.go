@@ -52,8 +52,7 @@ type TimeDifference struct {
 	Hours   sdk.Int `json:"hours"`   // Кол-во часов
 	Minutes sdk.Int `json:"minutes"` // Кол-во минут
 	Seconds sdk.Int `json:"seconds"` // Кол-во секунд
-
-	Total sdk.Int `json:"total"` // Общее время в секундах
+	Total   sdk.Int `json:"total"`   // Общее время в секундах
 }
 
 // Creates new time difference based on the seconds difference

@@ -14,6 +14,8 @@ func NewGenesisState(records []Posmining) GenesisState {
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
+	// startDate := time.Date(2019, 9, 1, 0, 0, 0, 0, time.UTC)
+
 	return GenesisState{
 		Records: make([]Posmining, 0),
 	}

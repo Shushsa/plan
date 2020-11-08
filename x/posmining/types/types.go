@@ -6,6 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const CorrectionUpdatePeriod = 24
+
 var Savings = [...]int64{
 	0,   // 0-30 days
 	150, // 1.50 or 50%, 30-60 days
@@ -20,6 +22,14 @@ var Savings = [...]int64{
 	155, // 1.55 or 55%, 300-330 days
 	155, // 1.55 or 55%, 330-360 days
 	200, // 2.00 or 100%, >360 days
+}
+
+func GetSavingCoff(i int) sdk.Int {
+	if len(Savings) > i {
+		return sdk.NewInt(Savings[i])
+	}
+
+	return sdk.NewInt(Savings[len(Savings)-1])
 }
 
 // Структура хранения данных парамайнинга

@@ -1,6 +1,8 @@
 package posmining
 
 import (
+	"bytes"
+
 	"github.com/Shushsa/plan/x/coins"
 	"github.com/Shushsa/plan/x/posmining/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,10 +29,10 @@ func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
 	for ; iterator.Valid(); iterator.Next() {
 		var posmining types.Posmining
 
-		// Regulatio-n record
-		// test delete if bytes.Compare(iterator.Key(), []byte("correctio-n")) == 0 {
-		//	continue
-		//}
+		// Regulation record
+		if bytes.Compare(iterator.Key(), []byte("correction")) == 0 {
+			continue
+		}
 
 		k.Cdc.MustUnmarshalBinaryBare(iterator.Value(), &posmining)
 

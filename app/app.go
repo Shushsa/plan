@@ -397,7 +397,7 @@ func (app *NewApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 
 // EndBlocker application updates every end block
 func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	// Check if we should change regulatio-n based on the price every 100 blocks
+	// Check if we should change regulation based on the price every 100 blocks
 	if ctx.BlockHeight()%100 == 0 {
 		price, isOk := sdk.NewIntFromString("1")
 
@@ -405,7 +405,7 @@ func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Re
 			return app.mm.EndBlock(ctx, req)
 		}
 
-		// Update posmining correctio-n and also the creation price
+		// Update posmining correction and also the creation price
 		app.coinsKeeper.UpdateCreationPrice(ctx, price)
 	}
 
