@@ -141,7 +141,7 @@ func (k Keeper) GetPosminingResolve(ctx sdk.Context, owner sdk.AccAddress, coin 
 	if len(posminingGroup.Periods) > 0 {
 		currentPeriod = posminingGroup.Periods[len(posminingGroup.Periods)-1]
 	} else {
-		currentPeriod = types.PosminingPeriod{SavingCoff: sdk.NewInt(0), CorrectionCoff: sdk.NewInt(0)}
+		currentPeriod = types.PosminingPeriod{SavingCoff: sdk.NewInt(0)}
 	}
 
 	if coin.PosminingThreshold.IsPositive() && balance.Add(posminingGroup.Posmined).GTE(coin.PosminingThreshold) {
@@ -153,11 +153,10 @@ func (k Keeper) GetPosminingResolve(ctx sdk.Context, owner sdk.AccAddress, coin 
 	}
 
 	return types.PosminingResolve{
-		Coin:           coin.Symbol,
-		Posmining:      posmining,
-		SavingsCoff:    currentPeriod.SavingCoff,
-		CorrectionCoff: currentPeriod.CorrectionCoff,
-		Posmined:       posmining.Posmined.Add(posminingGroup.Posmined),
-		CoinsPerTime:   types.NewCoinsPerTime(balance, posmining.DailyPercent, posmining.StructureCoff, currentPeriod.SavingCoff, currentPeriod.CorrectionCoff),
+		Coin:         coin.Symbol,
+		Posmining:    posmining,
+		SavingsCoff:  currentPeriod.SavingCoff,
+		Posmined:     posmining.Posmined.Add(posminingGroup.Posmined),
+		CoinsPerTime: types.NewCoinsPerTime(balance, posmining.DailyPercent, posmining.StructureCoff, currentPeriod.SavingCoff),
 	}
 }

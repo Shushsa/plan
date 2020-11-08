@@ -60,22 +60,19 @@ type Correction struct {
 // Updates the regulation when we get new market data
 func (t *Correction) Update(current time.Time, price sdk.Int, coff sdk.Int) {
 	prev := PreviousCorrection{
-		StartDate:      t.StartDate,
-		EndDate:        current,
-		OpeningPrice:   t.OpeningPrice,
-		CorrectionCoff: t.CorrectionCoff,
+		StartDate:    t.StartDate,
+		EndDate:      current,
+		OpeningPrice: t.OpeningPrice,
 	}
 
 	t.PreviousCorrections = append([]PreviousCorrection{prev}, t.PreviousCorrections...)
 
 	t.StartDate = current
 	t.OpeningPrice = price
-	t.CorrectionCoff = coff
 }
 
 type PreviousCorrection struct {
-	StartDate      time.Time `json:"start_date"`      // дата и время начала регуляции
-	EndDate        time.Time `json:"end_date"`        // дата и время конца регуляции
-	OpeningPrice   sdk.Int   `json:"opening_price"`   // цена, при которой поменялась регуляция
-	CorrectionCoff sdk.Int   `json:"regulation_coff"` // коэффициент коррекции
+	StartDate    time.Time `json:"start_date"`    // дата и время начала регуляции
+	EndDate      time.Time `json:"end_date"`      // дата и время конца регуляции
+	OpeningPrice sdk.Int   `json:"opening_price"` // цена, при которой поменялась регуляция
 }
