@@ -16,7 +16,7 @@ type CoinsPerTime struct {
 }
 
 // Calculates and returns new CoinsPerTime
-func NewCoinsPerTime(balance sdk.Int, dailyPercent sdk.Int, structureCoff sdk.Int, savingsCoff sdk.Int, regulationCOff sdk.Int) CoinsPerTime {
+func NewCoinsPerTime(balance sdk.Int, dailyPercent sdk.Int, structureCoff sdk.Int, savingsCoff sdk.Int, regulationCoff sdk.Int) CoinsPerTime {
 	result := CoinsPerTime{
 		Day:    sdk.NewInt(0),
 		Hour:   sdk.NewInt(0),
@@ -38,8 +38,8 @@ func NewCoinsPerTime(balance sdk.Int, dailyPercent sdk.Int, structureCoff sdk.In
 		toQuo = toQuo.MulRaw(100)
 	}
 
-	if regulationCOff.IsZero() == false {
-		actualPercent = actualPercent.Mul(regulationCOff)
+	if regulationCoff.IsZero() == false {
+		actualPercent = actualPercent.Mul(regulationCoff)
 		toQuo = toQuo.MulRaw(100)
 	}
 

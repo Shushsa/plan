@@ -6,8 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const CorrectionUpdatePeriod = 24
-
 var Savings = [...]int64{
 	0,   // 0-30 days
 	150, // 1.50 or 50%, 30-60 days
@@ -56,7 +54,6 @@ func NewPosmining(owner sdk.AccAddress) Posmining {
 type Correction struct {
 	StartDate           time.Time            `json:"start_date"`           // datetime of the updated coff
 	OpeningPrice        sdk.Int              `json:"opening_price"`        // the market price being used
-	CorrectionCoff      sdk.Int              `json:"correction_coff"`      // regulator coff
 	PreviousCorrections []PreviousCorrection `json:"previous_corrections"` // previous regulation periods
 }
 

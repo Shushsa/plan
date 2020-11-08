@@ -117,20 +117,6 @@ func (k Keeper) UpdateDailyPercent(ctx sdk.Context, addr sdk.AccAddress, coin co
 	}
 }
 
-// Fetches the current price and updates posmining regulation
-func (k Keeper) UpdateRegulation(ctx sdk.Context, currentPrice sdk.Int) {
-	regulation := k.GetCorrection(ctx)
-
-	coff := sdk.NewInt(100)
-
-	// If the coff should be changed and since the latest update passed at least types.CorrectionUpdatePeriod hours
-	if !regulation.CorrectionCoff.Equal(coff) && ctx.BlockTime().Sub(regulation.StartDate).Hours() >= types.CorrectionUpdatePeriod {
-		regulation.Update(ctx.BlockTime(), currentPrice, coff)
-
-		k.SetCorrection(ctx, regulation)
-	}
-}
-
 // We need to save delegators posmining before they get slashed
 func (k Keeper) UpdateDelegatorsBeforeSlashing(ctx sdk.Context, valAddr sdk.ValAddress) {
 	delegations := k.stakingKeeper.GetValidatorDelegations(ctx, valAddr)
