@@ -2,38 +2,33 @@ package emission
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/plan-crypto/node/x/emission/keeper"
-	"github.com/plan-crypto/node/x/emission/types"
-	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/Shushsa/plan/x/coins"
+	"github.com/Shushsa/plan/x/emission/types"
 )
 
-type GenesisState struct {
+// InitGenesis initialize default parameters
+// and the keeper's address to pubkey map
+func InitGenesis(ctx sdk.Context, k Keeper, data GenesisState) {
+	for _, record := range data.Records {
+		k.SetEmission(ctx, record, coins.GetDefaultCoin())
+	}
 }
 
-// Init
-func NewGenesisState() GenesisState {
-	return GenesisState{}
-}
+// ExportGenesis writes the current store values
+// to a genesis file, which can be imported again
+// with InitGenesis
+func ExportGenesis(ctx sdk.Context, k Keeper) (data GenesisState) {
+	var records []types.Emission
 
-// Validate
-func ValidateGenesis(data GenesisState) error {
-	return nil
-}
+	iterator := k.GetIterator(ctx)
 
-// Default state
-func DefaultGenesisState() GenesisState {
-	return GenesisState{}
-}
+	for ; iterator.Valid(); iterator.Next() {
+		var emission types.Emission
 
-// Init from state - just set the emission
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, data GenesisState) []abci.ValidatorUpdate {
-	// Стартовая эмиссия
-	k.SetEmission(ctx, types.NewEmission())
+		k.Cdc.MustUnmarshalBinaryBare(iterator.Value(), &emission)
 
-	return []abci.ValidatorUpdate{}
-}
+		records = append(records, emission)
+	}
 
-// Export
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) GenesisState {
-	return GenesisState{}
+	return NewGenesisState(records)
 }

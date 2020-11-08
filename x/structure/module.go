@@ -1,122 +1,141 @@
 package structure
 
-
 import (
 	"encoding/json"
-	"github.com/plan-crypto/node/x/structure/keeper"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/gorilla/mux"
+	"github.com/spf13/cobra"
+
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdk_module "github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/gorilla/mux"
-	"github.com/plan-crypto/node/x/structure/client/cli"
-	"github.com/plan-crypto/node/x/structure/client/rest"
-	stypes "github.com/plan-crypto/node/x/structure/types"
-	"github.com/spf13/cobra"
-	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/Shushsa/plan/x/structure/client/cli"
+	"github.com/Shushsa/plan/x/structure/client/rest"
 )
 
+// Type check to ensure the interface is properly implemented
 var (
-	_ sdk_module.AppModule      = AppModule{}
-	_ sdk_module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
 )
 
-const ModuleName = "structure"
-
-// app module Basics object
+// AppModuleBasic defines the basic application module used by the structure module.
 type AppModuleBasic struct{}
 
+// Name returns the structure module's name.
 func (AppModuleBasic) Name() string {
 	return ModuleName
 }
 
+// RegisterCodec registers the structure module's types for the given codec.
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	stypes.RegisterCodec(cdc)
+	RegisterCodec(cdc)
 }
 
+// DefaultGenesis returns default genesis state as raw bytes for the structure
+// module.
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return stypes.ModuleCdc.MustMarshalJSON(DefaultGenesisState())
+	return ModuleCdc.MustMarshalJSON(DefaultGenesisState())
 }
 
-// Validation check of the Genesis
+// ValidateGenesis performs genesis state validation for the structure module.
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 	var data GenesisState
-	err := stypes.ModuleCdc.UnmarshalJSON(bz, &data)
+	err := ModuleCdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
-
-	// once json successfully marshalled, passes along to genesis.go
 	return ValidateGenesis(data)
 }
 
-// Register rest routes
+// RegisterRESTRoutes registers the REST routes for the structure module.
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
 
-// Get the root query command of this module
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(cdc)
-}
-
-// Get the root tx command of this module
+// GetTxCmd returns the root tx command for the structure module.
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return nil
+	return cli.GetTxCmd(cdc)
 }
 
+// GetQueryCmd returns no root query command for the structure module.
+func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetQueryCmd(StoreKey, cdc)
+}
 
+//____________________________________________________________________________
+
+// AppModule implements an application module for the structure module.
 type AppModule struct {
 	AppModuleBasic
-	keeper     keeper.Keeper
+
+	keeper        Keeper
+	// TODO: Add keepers that your application depends on
 }
 
-// NewAppModule creates a new AppModule Object
-func NewAppModule(k  keeper.Keeper) AppModule {
+// NewAppModule creates a new AppModule object
+func NewAppModule(k Keeper, /*TODO: Add Keepers that your application depends on*/) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
-		keeper:         k,
+		AppModuleBasic:      AppModuleBasic{},
+		keeper:              k,
+		// TODO: Add keepers that your application depends on
 	}
 }
 
+// Name returns the structure module's name.
 func (AppModule) Name() string {
 	return ModuleName
 }
 
-func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {}
+// RegisterInvariants registers the structure module invariants.
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-func (am AppModule) Route() string {
-	return ModuleName
+// Route returns the message routing key for the structure module.
+func (AppModule) Route() string {
+	return RouterKey
 }
 
-func (am AppModule) NewHandler() types.Handler {
-	return nil
+// NewHandler returns an sdk.Handler for the structure module.
+func (am AppModule) NewHandler() sdk.Handler {
+	return NewHandler(am.keeper)
 }
 
-func (am AppModule) QuerierRoute() string {
-	return ModuleName
+// QuerierRoute returns the structure module's querier route name.
+func (AppModule) QuerierRoute() string {
+	return QuerierRoute
 }
 
-func (am AppModule) NewQuerierHandler() types.Querier {
-	return keeper.NewQuerier(am.keeper)
+// NewQuerierHandler returns the structure module sdk.Querier.
+func (am AppModule) NewQuerierHandler() sdk.Querier {
+	return NewQuerier(am.keeper)
 }
 
-func (am AppModule) BeginBlock(_ sdk.Context, _ abci.RequestBeginBlock) {}
-
-func (am AppModule) EndBlock(types.Context, abci.RequestEndBlock) ([]abci.ValidatorUpdate) {
+// InitGenesis performs genesis initialization for the structure module. It returns
+// no validator updates.
+func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+	var genesisState GenesisState
+	ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	InitGenesis(ctx, am.keeper, genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
-func (am AppModule) InitGenesis(ctx types.Context, data json.RawMessage) []abci.ValidatorUpdate {
-	var genesisState GenesisState
-	stypes.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	return InitGenesis(ctx, am.keeper, genesisState)
-}
-
+// ExportGenesis returns the exported genesis state as raw bytes for the structure
+// module.
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
-	return stypes.ModuleCdc.MustMarshalJSON(gs)
+	return ModuleCdc.MustMarshalJSON(gs)
+}
+
+// BeginBlock returns the begin blocker for the structure module.
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+	BeginBlocker(ctx, req, am.keeper)
+}
+
+// EndBlock returns the end blocker for the structure module. It returns no validator
+// updates.
+func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }

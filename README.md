@@ -1,37 +1,26 @@
-# Plan Node
+# Plancoin v2
 
-Plan is a blockchain built on the Cosmos SDK that allows you to build your own passive income. 
+Plancoin is a blockchain built on the Cosmos SDK with ability to generate a passive income (posmining) and create your own coins!
 
 ## Requirements
 
- - At least 20 GB disk space
- - Golang >= 1.12 with the $GOPATH and $GOBIN variables set
- - *nix is not required, but preferred
+ - At least 5 GB disk space
+ - Golang >= 1.13 with the $GOPATH and $GOBIN variables set
+ - *Nix system
  
-## Building
+## Install
 
-Just run `./scripts/build.sh` or `make install`, then you'll be able to use it from your console by calling "pland" or "plancli".
- 
-## Running local network for dev purpose
-
-Run `./scripts/init-genesis.sh`, then just start the node by `pland start` 
+Just run `bash ./scripts/build.sh` or `make install`, then you'll be able to use it from your console by  `plancoind` or `plancoincli`.
 
 ## Running the node
 
-After building the node, you need to fetch the latest blocks from here https://plan-crypto.s3-eu-west-1.amazonaws.com/blockchain.tar.gz
+Just start it by `plancoind start` and you should see it synchronizing the blocks. 
 
-To unpack them, please do
+If you want to become a validator, please check the docs <https://docs.plancoin-crypto.com/en/validator.html>
 
-```shell script
-tar -xvf blockchain.tar.gz -C ~/.pland/
-```
+## Resources
 
-After that, you'll be able to start your node via  ```pland start```
-
-## What's next?
-
-All the other things described here https://docs.plan-crypto.com/en/ including configuring your local console interface and running the API server.
-
-Here are https://github.com/plan-crypto/nodejs_examples some examples of working with the blockchain including account generation, txs sending, etc.
-
-If you still have any questions, please feel free to contact me via Telegram: @plan_developer
+* Website: <https://plancoin-crypto.com/en/>
+* Explorer: <https://explorer.plancoin-crypto.com>
+* Docs: <https://docs.plancoin-crypto.com/en/>
+* Telegram channel: <https://t.me/plancoin_lika_world>

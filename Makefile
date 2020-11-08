@@ -1,25 +1,35 @@
-all: lint install
+PACKAGES=$(shell go list ./... | grep -v '/simulation')
 
-install: go.sum
-		GO111MODULE=on go install ./cmd/pland
-		GO111MODULE=on go install ./cmd/plancli
+VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
+COMMIT := $(shell git log -1 --format='%H')
 
-		mkdir -p ~/.pland/config
+# TODO: Update the ldflags with the app, client & server names
+ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=NewApp \
+	-X github.com/cosmos/cosmos-sdk/version.ServerName=appd \
+	-X github.com/cosmos/cosmos-sdk/version.ClientName=appcli \
+	-X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
+	-X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT) 
 
-		cp -r ./installation/genesis.json ~/.pland/config/
-		cp -r ./installation/config.toml ~/.pland/config/
+BUILD_FLAGS := -ldflags '$(ldflags)'
 
-		plancli config chain-id plan
-		plancli config output json
-		plancli config indent true
-		plancli config node tcp://localhost:26657
-		plancli config trust-node true
+all: install
+
+install:
+	GO111MODULE=on go get
+	GO111MODULE=on go install ./cmd/plancoind
+	GO111MODULE=on go install ./cmd/plancoincli
 
 go.sum: go.mod
 		@echo "--> Ensure dependencies have not been modified"
+		GO111MODULE=on go get
 		GO111MODULE=on go mod verify
 
+# Uncomment when you have some tests
+# test:
+# 	@go test -mod=readonly $(PACKAGES)
+
+# look into .golangci.yml for enabling / disabling linters
 lint:
-	golangci-lint run
-	find . -name '*.go' -type f -not -path "./vendor*" -not -path "*.git*" | xargs gofmt -d -s
-	go mod verify
+	@echo "--> Running linter"
+	@golangci-lint run
+	@go mod verify

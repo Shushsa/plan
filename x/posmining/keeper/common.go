@@ -1,41 +1,71 @@
 package keeper
 
 import (
-	"github.com/plan-crypto/node/x/paramining/types"
+	"github.com/Shushsa/plan/x/coins"
+	"github.com/Shushsa/plan/x/posmining/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-
-// Fetches a paramining record by the owner - if one doesn't exist, it'll create a new one
-func (k Keeper) GetParamining(ctx sdk.Context, owner sdk.AccAddress) types.Paramining {
+// Saves the regulation record
+func (k Keeper) SetCorrection(ctx sdk.Context, regulation types.Correction) {
 	store := ctx.KVStore(k.storeKey)
 
-	if !store.Has(owner.Bytes()) {
-		newParamining := types.NewParamining(owner)
+	store.Set([]byte("correction"), k.Cdc.MustMarshalBinaryBare(regulation))
+}
 
-		newParamining.LastTransaction = ctx.BlockHeader().Time
-		newParamining.LastCharged = ctx.BlockHeader().Time
+// Gets the regulation record
+func (k Keeper) GetCorrection(ctx sdk.Context) types.Correction {
+	store := ctx.KVStore(k.storeKey)
 
-		return newParamining
+	var regulation types.Correction
+
+	k.Cdc.MustUnmarshalBinaryBare(store.Get([]byte("correction")), &regulation)
+
+	return regulation
+}
+
+// Fetches a posmining record by the owner and the coin - if one doesn't exist, it'll create a new one
+func (k Keeper) GetPosmining(ctx sdk.Context, owner sdk.AccAddress, coin coins.Coin) types.Posmining {
+	store := ctx.KVStore(k.storeKey)
+	key := owner.Bytes()
+
+	if !coin.Default {
+		key = []byte(coin.Symbol + owner.String())
 	}
 
-	var upperStructure types.Paramining
+	if !store.Has(key) {
+		newPosmining := types.NewPosmining(owner)
 
-	k.cdc.MustUnmarshalBinaryBare(store.Get(owner.Bytes()), &upperStructure)
+		newPosmining.LastTransaction = ctx.BlockHeader().Time
+		newPosmining.LastCharged = ctx.BlockHeader().Time
 
-	return upperStructure
+		return newPosmining
+	}
+
+	var posmining types.Posmining
+
+	k.Cdc.MustUnmarshalBinaryBare(store.Get(key), &posmining)
+
+	return posmining
 }
 
-// Saves the paramining record
-func (k Keeper) SetParamining(ctx sdk.Context, paramining types.Paramining) {
-	store := ctx.KVStore(k.storeKey)
-
-	store.Set(paramining.Owner.Bytes(), k.cdc.MustMarshalBinaryBare(paramining))
-}
 
 // Returns an iterator that allows to iterate over the records
-func (k Keeper) GetParaminingIterator(ctx sdk.Context) sdk.Iterator {
+func (k Keeper) GetPosminingIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 
 	return sdk.KVStorePrefixIterator(store, nil)
+}
+
+// Saves the posmining record
+func (k Keeper) SetPosmining(ctx sdk.Context, posmining types.Posmining, coin coins.Coin) {
+	store := ctx.KVStore(k.storeKey)
+
+	key := posmining.Owner.Bytes()
+
+	if !coin.Default {
+		key = []byte(coin.Symbol + posmining.Owner.String())
+	}
+
+	store.Set(key, k.Cdc.MustMarshalBinaryBare(posmining))
 }

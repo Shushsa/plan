@@ -1,77 +1,72 @@
 package keeper
 
 import (
+	"fmt"
+
+	"github.com/Shushsa/plan/x/bank"
+	"github.com/Shushsa/plan/x/coins"
+	"github.com/Shushsa/plan/x/emission"
+	"github.com/Shushsa/plan/x/posmining/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/plan-crypto/node/x/bank"
-	"github.com/plan-crypto/node/x/emission/keeper"
-	plnTypes "github.com/plan-crypto/node/x/plan/types"
-	"github.com/plan-crypto/node/x/paramining/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper maintains the link to data storage and exposes getter/setter methods for the various parts of the state machine
 type Keeper struct {
 	storeKey sdk.StoreKey // Unexposed key to access store from sdk.Context
 
-	coinKeeper     bank.Keeper
+	BankKeeper     bank.Keeper
+	CoinsKeeper    coins.Keeper
 	stakingKeeper  staking.Keeper
-	emissionKeeper keeper.Keeper
+	emissionKeeper emission.Keeper
 
-	cdc *codec.Codec // The wire codec for binary encoding/decoding.
+	Cdc *codec.Codec // The wire codec for binary encoding/decoding.
 
-	paraminingChargedHooks []ParaminingChargedHook
+	// Hooks
+	posminingChargedHooks []PosminingChargedHook
 }
 
-func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, coinKeeper bank.Keeper, stakingKeeper staking.Keeper, emissionKeeper keeper.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, coinKeeper bank.Keeper, stakingKeeper staking.Keeper, emissionKeeper emission.Keeper, coinsKeeper coins.Keeper) Keeper {
 	return Keeper{
-		storeKey:   storeKey,
-		coinKeeper: coinKeeper,
-		stakingKeeper: stakingKeeper,
-		emissionKeeper: emissionKeeper,
-		cdc:        cdc,
-		paraminingChargedHooks: make([]ParaminingChargedHook, 0),
+		storeKey:              storeKey,
+		BankKeeper:            coinKeeper,
+		stakingKeeper:         stakingKeeper,
+		emissionKeeper:        emissionKeeper,
+		CoinsKeeper:           coinsKeeper,
+		Cdc:                   cdc,
+		posminingChargedHooks: make([]PosminingChargedHook, 0),
 	}
 }
 
-// Updates daily percent based on the paraminable balance
-func (k Keeper) UpdateDailyPercent(ctx sdk.Context, addr sdk.AccAddress) {
-	paraminableBalance := k.coinKeeper.GetParaminableBalance(ctx, addr)
-
-	paramining := k.GetParamining(ctx, addr)
-
-	newDailyPercent := types.GetDailyPercent(paraminableBalance.AmountOf(plnTypes.PLN))
-
-	if !paramining.DailyPercent.Equal(newDailyPercent) {
-		paramining.DailyPercent = newDailyPercent
-
-		k.SetParamining(ctx, paramining)
-	}
+// Logger returns a module-specific logger.
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// Charges the paramining and resets the "lastCharged" field
-func (k Keeper) ChargeParamining(ctx sdk.Context, addr sdk.AccAddress, isReinvest bool) sdk.Int {
-	paraminableBalance := k.coinKeeper.GetParaminableBalance(ctx, addr)
+// Charges the posmining and resets the lastCharged field
+func (k Keeper) ChargePosmining(ctx sdk.Context, addr sdk.AccAddress, coin coins.Coin, isReinvest bool) sdk.Int {
+	balance := k.BankKeeper.GetPosminableBalance(ctx, addr, coin)
 
-	paramining := k.GetParamining(ctx, addr)
+	posmining := k.GetPosmining(ctx, addr, coin)
 
-	coinsParamined := k.CalculateParamined(ctx, paramining, paraminableBalance)
+	posMined := k.CalculatePosmined(ctx, posmining, coin, balance)
 
-	// Reset the fields
-	paramining.Paramined = sdk.NewInt(0)
+	posmining.Posmined = sdk.NewInt(0)
 
 	// Since reinvest doesn't reset "last transaction" field
 	if !isReinvest {
-		paramining.LastTransaction = ctx.BlockHeader().Time
+		posmining.LastTransaction = ctx.BlockHeader().Time
 	}
 
-	paramining.LastCharged = ctx.BlockHeader().Time
+	posmining.LastCharged = ctx.BlockHeader().Time
 
-	k.SetParamining(ctx, paramining)
+	k.SetPosmining(ctx, posmining, coin)
 
-	// If we charged at least 0.000001 pln
-	if coinsParamined.IsPositive() {
-		_, err := k.coinKeeper.AddCoins(ctx, addr, plnTypes.NewCoins(coinsParamined))
+	// If we charged at least 0.000001
+	if posMined.IsPositive() {
+		_, err := k.BankKeeper.AddCoins(ctx, addr, sdk.NewCoins(sdk.NewCoin(coin.Symbol, posMined)))
 
 		if err != nil {
 			panic(err)
@@ -79,50 +74,90 @@ func (k Keeper) ChargeParamining(ctx sdk.Context, addr sdk.AccAddress, isReinves
 
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
-				types.EventTypeParaminingCharged,
+				types.EventTypePosminingCharged,
 				sdk.NewAttribute(sdk.AttributeKeySender, addr.String()),
-				sdk.NewAttribute(AttributeKeyAmount, coinsParamined.String()),
+				sdk.NewAttribute(types.AttributePosmined, posMined.String()),
 			),
 		)
 
-		k.afterParaminingCharged(ctx, addr, coinsParamined)
+		k.afterPosminingCharged(ctx, addr, posMined, coin)
 	}
 
-	return coinsParamined
+	return posMined
 }
 
-// Saves the paramined without charing it
-func (k Keeper) SaveParamined(ctx sdk.Context, addr sdk.AccAddress) sdk.Int {
-	paraminableBalance := k.coinKeeper.GetParaminableBalance(ctx, addr)
-	paramining := k.GetParamining(ctx, addr)
-	paramined := k.CalculateParamined(ctx, paramining, paraminableBalance)
+// Saves the posmined coins without charging it
+func (k Keeper) SavePosmined(ctx sdk.Context, addr sdk.AccAddress, coin coins.Coin) sdk.Int {
+	balance := k.BankKeeper.GetPosminableBalance(ctx, addr, coin)
 
-	paramining.Paramined = paramined
-	paramining.LastCharged = ctx.BlockHeader().Time
+	posmining := k.GetPosmining(ctx, addr, coin)
 
-	k.SetParamining(ctx, paramining)
+	posMined := k.CalculatePosmined(ctx, posmining, coin, balance)
 
-	return paramined
+	posmining.Posmined = posMined
+	posmining.LastCharged = ctx.BlockHeader().Time
+
+	k.SetPosmining(ctx, posmining, coin)
+
+	return posMined
 }
 
-// We need to save delegators paramining before they get slashed
+// Updates daily percent based on the posminable balance
+func (k Keeper) UpdateDailyPercent(ctx sdk.Context, addr sdk.AccAddress, coin coins.Coin) {
+	balance := k.BankKeeper.GetPosminableBalance(ctx, addr, coin)
+
+	posmining := k.GetPosmining(ctx, addr, coin)
+
+	newDailyPercent := coin.GetDailyPercent(balance)
+
+	if !posmining.DailyPercent.Equal(newDailyPercent) {
+		posmining.DailyPercent = newDailyPercent
+
+		k.SetPosmining(ctx, posmining, coin)
+	}
+}
+
+// We need to save delegators posmining before they get slashed
 func (k Keeper) UpdateDelegatorsBeforeSlashing(ctx sdk.Context, valAddr sdk.ValAddress) {
 	delegations := k.stakingKeeper.GetValidatorDelegations(ctx, valAddr)
 
+	defaultCoin := coins.GetDefaultCoin()
+
 	for _, delegation := range delegations {
-		k.SaveParamined(ctx, delegation.DelegatorAddress)
+		k.SavePosmined(ctx, delegation.DelegatorAddress, defaultCoin)
 	}
 }
 
-// Resolves paramining, so we can get that data via API
-func (k Keeper) GetParaminingResolve(ctx sdk.Context, owner sdk.AccAddress) types.ParaminingResolve {
-	paraminableBalance := k.coinKeeper.GetParaminableBalance(ctx, owner)
+// Resolves posmining, so we can get that data via API
+func (k Keeper) GetPosminingResolve(ctx sdk.Context, owner sdk.AccAddress, coin coins.Coin) types.PosminingResolve {
+	balance := k.BankKeeper.GetPosminableBalance(ctx, owner, coin)
 
-	paramining := k.GetParamining(ctx, owner)
+	posmining := k.GetPosmining(ctx, owner, coin)
 
-	return types.ParaminingResolve{
-		Paramining: paramining,
-		Paramined: k.CalculateParamined(ctx, paramining, paraminableBalance),
-		CoinsPerTime: k.CalculateCoinsPerTime(ctx, paramining, k.GetCurrentSavingsCoff(ctx, paramining), paraminableBalance),
+	posminingGroup := k.GetPosminingGroup(ctx, posmining, coin, balance)
+
+	var currentPeriod types.PosminingPeriod
+
+	if len(posminingGroup.Periods) > 0 {
+		currentPeriod = posminingGroup.Periods[len(posminingGroup.Periods)-1]
+	} else {
+		currentPeriod = types.PosminingPeriod{SavingCoff: sdk.NewInt(0), CorrectionCoff: sdk.NewInt(0)}
+	}
+
+	if coin.PosminingThreshold.IsPositive() && balance.Add(posminingGroup.Posmined).GTE(coin.PosminingThreshold) {
+		posminingGroup.Posmined = sdk.NewInt(0)
+
+		if balance.GTE(coin.PosminingThreshold) {
+			posmining.Posmined = sdk.NewInt(0)
+		}
+	}
+
+	return types.PosminingResolve{
+		Coin:           coin.Symbol,
+		Posmining:      posmining,
+		SavingsCoff:    currentPeriod.SavingCoff,
+		CorrectionCoff: currentPeriod.CorrectionCoff,
+		Posmined:       posmining.Posmined.Add(posminingGroup.Posmined),
+		CoinsPerTime:   types.NewCoinsPerTime(balance, posmining.DailyPercent, posmining.StructureCoff, currentPeriod.SavingCoff, currentPeriod.CorrectionCoff),
 	}
 }

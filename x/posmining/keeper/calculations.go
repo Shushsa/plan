@@ -1,195 +1,165 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	plnTypes "github.com/plan-crypto/node/x/plan/types"
-	"github.com/plan-crypto/node/x/paramining/types"
+	"github.com/Shushsa/plan/x/posmining/types"
 	"math"
 	"time"
 )
 
-// Calculates how many tokens has been paramined
-func (k Keeper) CalculateParamined(ctx sdk.Context, paramining types.Paramining, coins sdk.Coins) sdk.Int {
-	periods := k.GetParaminingPeriods(ctx, paramining)
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/Shushsa/plan/x/coins"
+)
 
-	totalCoins := sdk.NewInt(0)
-
-	for _, value := range periods {
-		timeDiff := k.GetTimeDiffFromSeconds(ctx, value.Total.Int64())
-
-		perTime := k.CalculateCoinsPerTime(ctx, paramining, value.SavingsCoff, coins)
-
-		totalCoins = totalCoins.Add(timeDiff.Seconds.Mul(
-			perTime.Second).Add(
-			timeDiff.Minutes.Mul(perTime.Minute)).Add(
-			timeDiff.Hours.Mul(perTime.Hour)).Add(
-			timeDiff.Days.Mul(perTime.Day)))
-	}
-
-	paramined := totalCoins.Add(paramining.Paramined)
-
-	coinsAmount := coins.AmountOf(plnTypes.PLN)
-	paraminingThreshold := plnTypes.GetParaminingThreshold()
-
-	// If the balance is greater that our hardcap (2m plns) - let's just charge the difference
-	if paramined.IsPositive() && coinsAmount.Add(paramined).GTE(paraminingThreshold) {
-		if coinsAmount.GTE(paraminingThreshold) {
-			paramined = sdk.NewInt(0)
-		} else {
-			paramined = paraminingThreshold.Sub(coinsAmount)
-		}
-	}
-
-	return paramined
-}
-
-// Calculates how many tokens we should charge during every "savings" period - every period is 30 days long
-func (k Keeper) GetParaminingPeriods(ctx sdk.Context, paramining types.Paramining) []types.ParaminingPeriod {
-	chunks := k.GetSavingsChunks(ctx, int64(ctx.BlockHeader().Time.Sub(paramining.LastTransaction).Seconds()))
-	chargeDiff := int64(ctx.BlockHeader().Time.Sub(paramining.LastCharged).Seconds())
-
-	var result []types.ParaminingPeriod
-
-	i := len(chunks) - 1
-
-	var duration int64
-
-	for chargeDiff > 0 {
-		if chargeDiff > chunks[i] {
-			duration = chunks[i]
-		} else {
-			duration = chargeDiff
-		}
-
-		chargeDiff -= duration
-
-		var savingsCoff int64
-
-		if len(types.Savings) <= i {
-			savingsCoff = types.Savings[len(types.Savings)-1]
-		} else {
-			savingsCoff = types.Savings[i]
-		}
-
-		period := types.ParaminingPeriod{
-			Total:       sdk.NewInt(duration),
-			SavingsCoff: sdk.NewInt(savingsCoff),
-		}
-
-		result = append([]types.ParaminingPeriod{period}, result...)
-
-		i -= 1
-	}
-
-	return result
-}
-
-// Calculates savings chunks - splits all the time passed by 30 days periods and returns them
-func (k Keeper) GetSavingsChunks(ctx sdk.Context, seconds int64) []int64 {
+// Returns a list of saving posmining periods
+func (k Keeper) GetSavingPeriods(ctx sdk.Context, posmining types.Posmining) []types.PosminingPeriod {
 	var daysSeparator int64 = 2592000
 
-	if seconds < daysSeparator {
-		return []int64{seconds}
+	lastTx := posmining.LastTransaction
+	secondsDiff := int64(ctx.BlockTime().Sub(lastTx).Seconds())
+
+	if secondsDiff < daysSeparator {
+		return []types.PosminingPeriod{types.NewPosminingPeriod(lastTx, ctx.BlockTime(), sdk.NewInt(0), sdk.NewInt(0))}
 	}
 
-	periods := seconds / daysSeparator
-	mod := int64(math.Mod(float64(seconds), float64(daysSeparator)))
+	periods := secondsDiff / daysSeparator
+	mod := int64(math.Mod(float64(secondsDiff), float64(daysSeparator)))
 
-	var result []int64
+	var result []types.PosminingPeriod
 	var i int64 = 0
 
 	for i < periods {
-		result = append(result, daysSeparator)
+		result = append(result, types.NewPosminingPeriod(
+			lastTx.Add(time.Duration(daysSeparator*i)*time.Second),
+			lastTx.Add(time.Duration(daysSeparator*(i+1))*time.Second),
+			sdk.NewInt(0),
+			types.GetSavingCoff(int(i)),
+		))
 
 		i += 1
 	}
 
 	// What's left
 	if mod > 0 {
-		result = append(result, mod)
+		latestPeriod := lastTx.Add(time.Duration(daysSeparator*periods) * time.Second)
+
+		result = append(result, types.NewPosminingPeriod(
+			latestPeriod,
+			latestPeriod.Add(time.Duration(mod)*time.Second),
+			sdk.NewInt(0),
+			types.GetSavingCoff(int(periods)),
+		))
 	}
 
 	return result
 }
 
-// Calculates how many tokens we get per second, minute, hour and day
-func (k Keeper) CalculateCoinsPerTime(ctx sdk.Context, paramining types.Paramining, savingsCoff sdk.Int, coins sdk.Coins) types.CoinsPerTime {
-	result := types.NewCoinsPerTime()
+// Returns a list of correction posmining periods
+func (k Keeper) GetCorrectionPeriods(ctx sdk.Context, posmining types.Posmining) []types.PosminingPeriod {
+	correction := k.GetCorrection(ctx)
 
-	if paramining.DailyPercent.IsZero() || k.emissionKeeper.IsThresholdReached(ctx) {
+	// First we always initialize the current correction period
+	result := []types.PosminingPeriod{
+		types.NewPosminingPeriod(correction.StartDate, ctx.BlockTime(), correction.CorrectionCoff, sdk.NewInt(0)),
+	}
+
+	// If we should count only the current period
+	if correction.StartDate.Before(posmining.LastCharged) {
+		result[0].Start = posmining.LastCharged
+
 		return result
 	}
 
-	toQuo := sdk.NewInt(10000)
-	actualPercent := paramining.DailyPercent
+	for _, previous := range correction.PreviousCorrections {
+		if previous.EndDate.After(posmining.LastCharged) {
+			var startDate time.Time
 
-	if paramining.StructureCoff.IsZero() == false {
-		actualPercent = actualPercent.Mul(paramining.StructureCoff)
-		toQuo = toQuo.MulRaw(100) // Добавляем 00 в конец т.к. перемножаем с кофф
+			if previous.StartDate.Before(posmining.LastCharged) {
+				startDate = posmining.LastCharged
+			} else {
+				startDate = previous.StartDate
+			}
+
+			result = append([]types.PosminingPeriod{types.NewPosminingPeriod(startDate, previous.EndDate, previous.CorrectionCoff, sdk.NewInt(0))}, result...)
+		}
+
+		if previous.StartDate.Before(posmining.LastCharged) {
+			break
+		}
 	}
-
-	if savingsCoff.IsZero() == false {
-		actualPercent = actualPercent.Mul(savingsCoff)
-		toQuo = toQuo.MulRaw(100) // Добавляем 00 в конец т.к. перемножаем с кофф
-	}
-
-	actualCoins := coins.AmountOf(plnTypes.PLN)
-
-	result.Day = actualCoins.Mul(actualPercent).Quo(toQuo)
-	result.Hour = result.Day.QuoRaw(24)
-	result.Minute = result.Hour.QuoRaw(60)
-	result.Second = result.Minute.QuoRaw(60)
 
 	return result
 }
 
-// Get time difference in days, hours, minutes and seconds
-func (k Keeper) GetTimeDiffFromSeconds(ctx sdk.Context, seconds int64) types.TimeDifference {
-	duration := time.Duration(seconds) * time.Second
+// Calculates and returns a group of posmining periods
+func (k Keeper) GetPosminingGroup(ctx sdk.Context, posmining types.Posmining, coin coins.Coin, balance sdk.Int) types.PosminingGroup {
+	group := types.NewPosminingGroup(posmining, balance)
 
-	difference := types.NewTimeDifference()
-	difference.Total = sdk.NewInt(int64(duration.Seconds()))
+	// For the custom coins, we just have to apply the usual percents during the whole time
+	if !coin.Default {
+		group.Add(types.NewPosminingPeriod(posmining.LastCharged, ctx.BlockTime(), sdk.NewInt(0), sdk.NewInt(0)))
 
-	// Меньше минуты
-	if duration.Seconds() < 60.0 {
-		difference.Seconds = sdk.NewInt(int64(duration.Seconds()))
-
-		return difference
+		return group
 	}
 
-	// Меньше часа
-	if duration.Minutes() < 60.0 {
-		difference.Minutes = sdk.NewInt(int64(duration.Minutes()))
-		difference.Seconds = sdk.NewInt(int64(math.Mod(duration.Seconds(), 60)))
+	savings := k.GetSavingPeriods(ctx, posmining)
 
-		return difference
+	corrections := k.GetCorrectionPeriods(ctx, posmining)
+
+	r_i := 0
+
+	for _, saving := range savings {
+		for r_i < len(corrections) {
+			correction := corrections[r_i]
+
+			// In that case, we should move to the next saving
+			if correction.Start.Equal(saving.End) || correction.Start.After(saving.End) {
+				break
+			}
+
+			if correction.End.Equal(saving.End) || correction.End.Before(saving.End) {
+				correction.SavingCoff = saving.SavingCoff
+
+				group.Add(correction)
+			} else {
+				newCorrection := correction
+
+				correction.End = saving.End
+				correction.SavingCoff = saving.SavingCoff
+
+				group.Add(correction)
+
+				newCorrection.Start = correction.End
+
+				// Making new space
+				corrections = append(corrections, types.PosminingPeriod{})
+
+				// Copying element to the next index
+				copy(corrections[r_i+2:], corrections[r_i+1:])
+
+				// Replacing
+				corrections[r_i+1] = newCorrection
+			}
+
+			r_i += 1
+		}
 	}
 
-	// Меньше дня
-	if duration.Hours() < 24.0 {
-		difference.Hours = sdk.NewInt(int64(duration.Hours()))
-		difference.Minutes = sdk.NewInt(int64(math.Mod(duration.Minutes(), 60)))
-		difference.Seconds = sdk.NewInt(int64(math.Mod(duration.Seconds(), 60)))
-
-		return difference
-	}
-
-	difference.Days = sdk.NewInt(int64(duration.Hours() / 24))
-	difference.Hours = sdk.NewInt(int64(math.Mod(duration.Hours(), 24)))
-	difference.Minutes = sdk.NewInt(int64(math.Mod(duration.Minutes(), 60)))
-	difference.Seconds = sdk.NewInt(int64(math.Mod(duration.Seconds(), 60)))
-
-	return difference
+	return group
 }
 
-
-// Returns current savings coff depends on how many days passed since the latest tx
-func (k Keeper) GetCurrentSavingsCoff(ctx sdk.Context, paramining types.Paramining) sdk.Int {
-	chunks := k.GetSavingsChunks(ctx, int64(ctx.BlockHeader().Time.Sub(paramining.LastTransaction).Seconds()))
-
-	if len(types.Savings) >= len(chunks) {
-		return sdk.NewInt(types.Savings[len(chunks)-1])
+// Calculates how many tokens has been posmined
+func (k Keeper) CalculatePosmined(ctx sdk.Context, posmining types.Posmining, coin coins.Coin, coinsAmount sdk.Int) sdk.Int {
+	// If we have a threshold set and it's already has been reach, we should always return 0
+	if coin.PosminingThreshold.IsPositive() && coinsAmount.GTE(coin.PosminingThreshold) {
+		return sdk.NewInt(0)
 	}
 
-	return sdk.NewInt(types.Savings[len(types.Savings)-1])
+	posmined := posmining.Posmined.Add(k.GetPosminingGroup(ctx, posmining, coin, coinsAmount).Posmined)
+
+	if coin.PosminingThreshold.IsPositive() && posmined.IsPositive() && coinsAmount.Add(posmined).GTE(coin.PosminingThreshold) {
+		posmined = coin.PosminingThreshold.Sub(coinsAmount)
+	}
+
+	return posmined
 }
