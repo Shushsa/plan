@@ -2,14 +2,15 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/Shushsa/plan/x/coins"
 
 	"github.com/tendermint/tendermint/libs/log"
 
+	planTypes "github.com/Shushsa/plan/x/plancoin/types"
+	"github.com/Shushsa/plan/x/structure/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/Shushsa/plan/x/structure/types"
-	planTypes "github.com/Shushsa/plan/x/plancoin/types"
 )
 
 // Keeper of the structure store
@@ -17,29 +18,33 @@ type Keeper struct {
 	storeKey      sdk.StoreKey
 	fastAccessKey sdk.StoreKey
 
-	CoinsKeeper    coins.Keeper
+	CoinsKeeper coins.Keeper
 
 	structureChangedHooks []StructureChangedHook
 
-	Cdc        *codec.Codec
+	Cdc *codec.Codec
 }
 
 // NewKeeper creates a structure keeper
 func NewKeeper(cdc *codec.Codec, storeKey sdk.StoreKey, fastAccessKey sdk.StoreKey, coinsKeeper coins.Keeper) Keeper {
 	return Keeper{
-		Cdc:           cdc,
-		storeKey:      storeKey,
-		fastAccessKey: fastAccessKey,
-		CoinsKeeper: coinsKeeper,
+		Cdc:                   cdc,
+		storeKey:              storeKey,
+		fastAccessKey:         fastAccessKey,
+		CoinsKeeper:           coinsKeeper,
 		structureChangedHooks: make([]StructureChangedHook, 0),
 	}
 }
-
 
 // Adds address to the owner's structure if he's already not a part of some structure
 func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sdk.AccAddress, coinsAmount sdk.Int, coin coins.Coin) bool {
 	// Already has an upper structure
 	if k.HasUpperStructure(ctx, address) {
+		return false
+	}
+
+	address_structure := k.GetStructure(ctx, address, coin).Followers
+	if !address_structure.IsZero() {
 		return false
 	}
 
@@ -71,7 +76,6 @@ func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sd
 	nextOwner := k.GetUpperStructure(ctx, owner).Owner
 	currentLevel := sdk.NewInt(2)
 	maxLevel := planTypes.GetMaxLevel()
-
 
 	for {
 		// The end
@@ -117,7 +121,6 @@ func (k Keeper) AddToStructure(ctx sdk.Context, owner sdk.AccAddress, address sd
 	return true
 }
 
-
 // Increase structure balance by coinsAmount
 func (k Keeper) IncreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress, coinsAmount sdk.Int, coin coins.Coin) {
 	if coinsAmount.IsZero() {
@@ -156,7 +159,6 @@ func (k Keeper) IncreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress
 		currentLevel = currentLevel.AddRaw(1)
 	}
 }
-
 
 // Decrease structure balance
 func (k Keeper) DecreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress, coinsAmount sdk.Int, coin coins.Coin) {
@@ -201,7 +203,6 @@ func (k Keeper) DecreaseStructureBalance(ctx sdk.Context, address sdk.AccAddress
 		currentLevel = currentLevel.AddRaw(1)
 	}
 }
-
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

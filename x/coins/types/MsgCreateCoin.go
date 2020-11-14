@@ -14,21 +14,21 @@ type MsgCreateCoin struct {
 	Description string         `json:"description" yaml:"description"` // description of the coin
 	Emission    sdk.Int        `json:"emission" yaml:"emission"`       // initial emission of the coin
 
-	PosminingEnabled bool                   `json:"posmining_enabled" yaml:"posmining_enabled"` // if posmining should be enabled
-	PosminingBalance []CoinBalancePosmining `json:"posmining_balance" yaml:"posmining_balance"` // all the daily percent conditions
+	PosminingEnabled   bool                     `json:"posmining_enabled" yaml:"posmining_enabled"` // if posmining should be enabled
+	PosminingBalance   []CoinBalancePosmining   `json:"posmining_balance" yaml:"posmining_balance"` // all the daily percent conditions
 	StructurePosmining []CoinStructurePosmining `json:"posmining_balance" yaml:"posmining_balance"` // all the daily percent conditions
 }
 
 // NewMsgCreateCoin creates a new MsgCreateCoin instance
 func NewMsgCreateCoin(creator sdk.AccAddress, name, symbol, description string, emission sdk.Int, posminingEnabled bool, posminingBalance []CoinBalancePosmining, posminingStructure []CoinStructurePosmining) MsgCreateCoin {
 	return MsgCreateCoin{
-		Creator:     creator,
-		Name:        name,
-		Symbol:      symbol,
-		Description: description,
-		Emission:    emission,
-		PosminingEnabled: posminingEnabled,
-		PosminingBalance: posminingBalance,
+		Creator:            creator,
+		Name:               name,
+		Symbol:             symbol,
+		Description:        description,
+		Emission:           emission,
+		PosminingEnabled:   posminingEnabled,
+		PosminingBalance:   posminingBalance,
 		StructurePosmining: posminingStructure,
 	}
 }
@@ -59,7 +59,7 @@ func (msg MsgCreateCoin) ValidateBasic() error {
 	if msg.PosminingEnabled {
 		i := 1
 
-		for i < len(msg.PosminingBalance) - 1 {
+		for i < len(msg.PosminingBalance)-1 {
 			if !msg.PosminingBalance[i].FromAmount.Equal(msg.PosminingBalance[i-1].ToAmount) {
 				return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "Posmining coffs should be the same")
 			}
@@ -69,7 +69,7 @@ func (msg MsgCreateCoin) ValidateBasic() error {
 
 		i = 1
 
-		for i < len(msg.StructurePosmining) - 1 {
+		for i < len(msg.StructurePosmining)-1 {
 			if !msg.StructurePosmining[i].FromAmount.Equal(msg.StructurePosmining[i-1].ToAmount) {
 				return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "Structure coffs should be the same")
 			}
