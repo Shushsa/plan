@@ -125,3 +125,11 @@ plancoincli query structure get $(plancoincli keys show overlord -a) plan
 plancoincli query posmining get $(plancoincli keys show bank2 -a)
 plancoincli query structure get $(plancoincli keys show bank2 -a) plan
 
+plancoincli keys add test1
+plancoincli tx send $(plancoincli keys show test -a) $(plancoincli keys show test1 -a) 100000000plan --from bank2 --fees 100plan --gas auto --gas-adjustment 1.5
+plancoincli keys add test2
+plancoincli tx send $(plancoincli keys show test1 -a) $(plancoincli keys show test2 -a) 10000000plan --from bank2 --fees 100plan --gas auto --gas-adjustment 1.5
+plancoincli keys add test3
+plancoincli tx send $(plancoincli keys show test2 -a) $(plancoincli keys show test3 -a) 1000000plan --from bank2 --fees 100plan --gas auto --gas-adjustment 1.5
+plancoincli keys add test4
+plancoincli tx send $(plancoincli keys show test3 -a) $(plancoincli keys show test4 -a) 100000plan --from bank2 --fees 100plan --gas auto --gas-adjustment 1.5

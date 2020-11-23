@@ -109,67 +109,29 @@ func InBetween(i sdk.Int, minRaw, maxRaw int64) bool {
 }
 
 /*
-	1000000000 = 1000
-	100000000  = 100
-	10000000   = 10
-	1000000    = 1
+	100000000000 = 100000
+	10000000000  = 10000
+	1000000000   = 1000
+	100000000    = 100
+	10000000     = 10
+	1000000      = 1
 */
 
 // Возвращает коэффициент структуры в зависимости от баланса
 func GetStructureCoff(balance sdk.Int) sdk.Int {
-	if balance.LT(sdk.NewInt(1000000000)) {
+	if balance.LT(sdk.NewInt(10000000000)) {
 		return sdk.NewInt(0)
 	}
-
-	if InBetween(balance, 1000000000, 9999999999) {
-		return sdk.NewInt(220)
+	if balance.LT(sdk.NewInt(100000000000)) {
+		return sdk.NewInt(160)
 	}
-
-	if InBetween(balance, 10000000000, 49999999999) {
-		return sdk.NewInt(240)
+	if balance.LT(sdk.NewInt(1000000000000)) {
+		return sdk.NewInt(170)
 	}
-
-	if InBetween(balance, 50000000000, 99999999999) {
-		return sdk.NewInt(260)
+	if balance.LT(sdk.NewInt(10000000000000)) {
+		return sdk.NewInt(190)
 	}
-
-	if InBetween(balance, 100000000000, 499999999999) {
-		return sdk.NewInt(280)
-	}
-
-	if InBetween(balance, 500000000000, 999999999999) {
-		return sdk.NewInt(300)
-	}
-
-	if InBetween(balance, 1000000000000, 2499999999999) {
-		return sdk.NewInt(320)
-	}
-
-	if InBetween(balance, 2500000000000, 4999999999999) {
-		return sdk.NewInt(340)
-	}
-
-	if InBetween(balance, 5000000000000, 9999999999999) {
-		return sdk.NewInt(360)
-	}
-
-	if InBetween(balance, 10000000000000, 49999999999999) {
-		return sdk.NewInt(380)
-	}
-
-	if InBetween(balance, 50000000000000, 99999999999999) {
-		return sdk.NewInt(400)
-	}
-
-	if InBetween(balance, 100000000000000, 499999999999999) {
-		return sdk.NewInt(420)
-	}
-
-	if InBetween(balance, 500000000000000, 999999999999999) {
-		return sdk.NewInt(440)
-	}
-
-	return sdk.NewInt(460)
+	return sdk.NewInt(200)
 }
 
 /*
@@ -185,49 +147,20 @@ func GetStructureCoff(balance sdk.Int) sdk.Int {
 
 // Возвращает дневной процент в зависимости от баланса
 func GetDailyPercent(balance sdk.Int) sdk.Int {
-	if balance.LT(sdk.NewInt(10000)) {
+	if balance.LT(sdk.NewInt(1000000)) {
 		return sdk.NewInt(0)
 	}
-
-	if InBetween(balance, 10000, 99999999) {
-		return sdk.NewInt(6)
-	}
-
-	if InBetween(balance, 100000000, 999999999) {
-		return sdk.NewInt(7)
-	}
-
-	if InBetween(balance, 1000000000, 4999999999) {
+	if balance.LT(sdk.NewInt(100000000)) {
 		return sdk.NewInt(8)
 	}
-
-	if InBetween(balance, 5000000000, 9999999999) {
-		return sdk.NewInt(9)
-	}
-
-	if InBetween(balance, 10000000000, 24999999999) {
-		return sdk.NewInt(10)
-	}
-
-	if InBetween(balance, 25000000000, 49999999999) {
+	if balance.LT(sdk.NewInt(1000000000)) {
 		return sdk.NewInt(11)
 	}
-
-	if InBetween(balance, 50000000000, 99999999999) {
+	if balance.LT(sdk.NewInt(10000000000)) {
 		return sdk.NewInt(12)
 	}
-
-	if InBetween(balance, 100000000000, 249999999999) {
-		return sdk.NewInt(13)
-	}
-
-	if InBetween(balance, 250000000000, 499999999999) {
+	if balance.LT(sdk.NewInt(100000000000)) {
 		return sdk.NewInt(14)
 	}
-
-	if InBetween(balance, 500000000000, 999999999999) {
-		return sdk.NewInt(15)
-	}
-
-	return sdk.NewInt(16)
+	return sdk.NewInt(18)
 }
