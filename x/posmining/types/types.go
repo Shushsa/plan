@@ -30,7 +30,7 @@ func GetSavingCoff(i int) sdk.Int {
 	return sdk.NewInt(Savings[len(Savings)-1])
 }
 
-// Структура хранения данных POS-майнинга
+// Структура хранения данных майнинга
 type Posmining struct {
 	Owner           sdk.AccAddress `json:"owner"`            // Владелец
 	DailyPercent    sdk.Int        `json:"daily_percent"`    // Дневной процент начисления майнинга
