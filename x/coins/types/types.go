@@ -119,19 +119,19 @@ func InBetween(i sdk.Int, minRaw, maxRaw int64) bool {
 
 // Возвращает коэффициент структуры в зависимости от баланса
 func GetStructureCoff(balance sdk.Int) sdk.Int {
-	if balance.LT(sdk.NewInt(10000000000)) {
+	if balance.LT(sdk.NewInt(9999999999)) {
 		return sdk.NewInt(0)
 	}
-	if balance.LT(sdk.NewInt(100000000000)) {
-		return sdk.NewInt(160)
-	}
-	if balance.LT(sdk.NewInt(1000000000000)) {
-		return sdk.NewInt(170)
-	}
-	if balance.LT(sdk.NewInt(10000000000000)) {
+	if balance.LT(sdk.NewInt(99999999999)) {
 		return sdk.NewInt(190)
 	}
-	return sdk.NewInt(200)
+	if balance.LT(sdk.NewInt(999999999999)) {
+		return sdk.NewInt(220)
+	}
+	if balance.LT(sdk.NewInt(9999999999999)) {
+		return sdk.NewInt(240)
+	}
+	return sdk.NewInt(260)
 }
 
 /*
@@ -147,20 +147,20 @@ func GetStructureCoff(balance sdk.Int) sdk.Int {
 
 // Возвращает дневной процент в зависимости от баланса
 func GetDailyPercent(balance sdk.Int) sdk.Int {
-	if balance.LT(sdk.NewInt(1000000)) {
+	if balance.LT(sdk.NewInt(9999)) {
 		return sdk.NewInt(0)
 	}
-	if balance.LT(sdk.NewInt(100000000)) {
+	if balance.LT(sdk.NewInt(99999999)) {
 		return sdk.NewInt(8)
 	}
-	if balance.LT(sdk.NewInt(1000000000)) {
+	if balance.LT(sdk.NewInt(999999999)) {
 		return sdk.NewInt(11)
 	}
-	if balance.LT(sdk.NewInt(10000000000)) {
+	if balance.LT(sdk.NewInt(9999999999)) {
 		return sdk.NewInt(12)
 	}
-	if balance.LT(sdk.NewInt(100000000000)) {
+	if balance.LT(sdk.NewInt(99999999999)) {
 		return sdk.NewInt(14)
 	}
-	return sdk.NewInt(18)
+	return sdk.NewInt(16)
 }

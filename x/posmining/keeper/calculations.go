@@ -12,7 +12,8 @@ import (
 
 // Returns a list of saving posmining periods
 func (k Keeper) GetSavingPeriods(ctx sdk.Context, posmining types.Posmining) []types.PosminingPeriod {
-	var daysSeparator int64 = 2592000
+	// var daysSeparator int64 = 2592000 // set period 30 days
+	var daysSeparator int64 = 1800 // set period 10 minutes (30 min) test
 
 	lastTx := posmining.LastTransaction
 	secondsDiff := int64(ctx.BlockTime().Sub(lastTx).Seconds())

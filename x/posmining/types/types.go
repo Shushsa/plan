@@ -8,18 +8,18 @@ import (
 
 var Savings = [...]int64{
 	0,   // 0-30 days
-	180, // 1.80 or 50%, 30-60 days
-	180, // 1.80 or 51%, 60-90 days
-	200, // 2.00 or 52%, 90-120 days
-	200, // 2.00 or 53%, 120-150 days
-	200, // 2.00 or 54%, 150-180 days
-	220, // 2.20 or 55%, 180-210 days
-	220, // 2.20 or 55%, 210-240 days
-	220, // 2.20 or 55%, 240-270 days
-	240, // 2.40 or 55%, 270-300 days
-	240, // 2.40 or 55%, 300-330 days
-	240, // 2.40 or 55%, 330-360 days
-	240, // 2.40 or 100%, >360 days
+	160, // 1.60 or 50%, 30-60 days
+	160, // 1.60 or 51%, 60-90 days
+	180, // 1.80 or 52%, 90-120 days
+	180, // 1.80 or 53%, 120-150 days
+	180, // 1.80 or 54%, 150-180 days
+	200, // 2.00 or 55%, 180-210 days
+	200, // 2.00 or 55%, 210-240 days
+	200, // 2.00 or 55%, 240-270 days
+	220, // 2.20 or 55%, 270-300 days
+	220, // 2.20 or 55%, 300-330 days
+	220, // 2.20 or 55%, 330-360 days
+	220, // 2.20 or 100%, >360 days
 }
 
 func GetSavingCoff(i int) sdk.Int {
@@ -30,14 +30,14 @@ func GetSavingCoff(i int) sdk.Int {
 	return sdk.NewInt(Savings[len(Savings)-1])
 }
 
-// Структура хранения данных парамайнинга
+// Структура хранения данных POS-майнинга
 type Posmining struct {
 	Owner           sdk.AccAddress `json:"owner"`            // Владелец
-	DailyPercent    sdk.Int        `json:"daily_percent"`    // Дневной процент начисления парамайнинга
+	DailyPercent    sdk.Int        `json:"daily_percent"`    // Дневной процент начисления майнинга
 	StructureCoff   sdk.Int        `json:"structure_coff"`   // Коэффициент структуры
-	Posmined        sdk.Int        `json:"posmined"`         // Как много токенов уже напарамайнено, но не снято - юзаем для расчета при изменении условий
+	Posmined        sdk.Int        `json:"posmined"`         // Сколько уже намайнено, но не снято - для расчета при изменении условий
 	LastTransaction time.Time      `json:"last_transaction"` // Когда последний раз была исходящая транзакция
-	LastCharged     time.Time      `json:"last_charged"`     // Когда последний раз был charge (начисление парамайнинга)
+	LastCharged     time.Time      `json:"last_charged"`     // Когда последний раз был charge (начисление майнинга)
 }
 
 // Возвращает новый Posmining

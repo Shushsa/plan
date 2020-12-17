@@ -7,7 +7,7 @@ import (
 
 type Emission struct {
 	Current   sdk.Int `json:"current"`   // Текущая эмиссия
-	Threshold sdk.Int `json:"threshold"` // Порог, после которого парамайнинг перестает работать
+	Threshold sdk.Int `json:"threshold"` // Порог, после которого майнинг перестает работать
 }
 
 // Достигнут ли порог
